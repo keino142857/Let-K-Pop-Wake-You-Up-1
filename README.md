@@ -8,10 +8,10 @@
 
 ### 下載時遇到的困難
 
-- 第一次下載 Mediapipe 失敗，因為版本不相容（Raspberry Pi 3 的 python 版本是 3.11.2）
-- Mediapipe 支援最高的 python 版本是 3.9，所以降了版本再下載一次，終於成功了
+- 第一次下載 Mediapipe 失敗，因為版本不相容（Raspberry Pi 3 的 Python 版本是 3.11.2）
+- Mediapipe 支援最高的 Python 版本是 3.9，所以降了版本再下載一次，終於成功了
 - 開始下載 TensorFlow 失敗
-- 下載並重新編譯了 python3.7 ，然後再重裝了 Mediapipe（超級久）跟 TensorFlow
+- 下載並重新編譯了 Python3.7（超級久） ，然後再重裝了 Mediapipe（超級久）跟 TensorFlow
 - 
 
 ### 下載前可以先看這裡
@@ -19,17 +19,17 @@
 - 有些下載的時間會很久，可以下這個指令看詳細的下載，可以增加信心並在出錯的時候可以即時知道XD
     - `--verbose`
 
-### 下載並重新編譯 python3.7
+### 下載並重新編譯 Python3.7
 
 - 因為 Raspberry Pi 3 是基於 ARM 架構，
 - `wget https://www.python.org/ftp/python/3.7.9/Python-3.7.9.tgz`
 
-### 建置虛擬環境（python 3.7）
+### 建置虛擬環境（Python 3.7）
 
 - `python3.7 -m venv lsa_p3.7`
     - lsa_p3.7 可以根據自己的需求更換
 
-### 進入虛擬環境（python 3.7）
+### 進入虛擬環境（Python 3.7）
 
 -  `source lsa_p3.7/bin/activate`
 
