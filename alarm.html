@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alarm Clock</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .time-display {
+            font-size: 2rem;
+            margin: 20px 0;
+        }
+
+        .alarm-settings {
+            margin: 20px;
+        }
+
+        input[type="time"], input[type="date"] {
+            padding: 5px;
+            font-size: 1rem;
+        }
+
+        .days-selector {
+            margin: 10px 0;
+        }
+
+        .days-selector label {
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .stop-alarm {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .stop-alarm button {
+            background-color: #f44336;
+        }
+
+        .stop-alarm button:hover {
+            background-color: #d32f2f;
+        }
+
+        .alarms-list {
+            margin: 20px;
+            text-align: left;
+        }
+
+        .alarms-list li {
+            margin-bottom: 10px;
+        }
+
+        .alarms-list button {
+            margin-left: 10px;
+            background-color: #f44336;
+        }
+
+        .alarms-list button:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Alarm Clock</h1>
+        <div class="time-display" id="current-time">00:00:00</div>
+
+        <div class="alarm-settings">
+            <label for="alarm-time">Set Alarm Time:</label>
+            <input type="time" id="alarm-time">
+
+            <div class="days-selector">
+                <label><input type="checkbox" value="0"> Sun</label>
+                <label><input type="checkbox" value="1"> Mon</label>
+                <label><input type="checkbox" value="2"> Tue</label>
+                <label><input type="checkbox" value="3"> Wed</label>
+                <label><input type="checkbox" value="4"> Thu</label>
+                <label><input type="checkbox" value="5"> Fri</label>
+                <label><input type="checkbox" value="6"> Sat</label>
+            </div>
+
+            <button onclick="addAlarm()">Add Alarm</button>
+        </div>
+
+        <ul class="alarms-list" id="alarms-list"></ul>
+
+        <div class="stop-alarm" id="stop-alarm">
+            <button onclick="stopAlarm()">Stop Alarm</button>
+        </div>
+
+        <audio id="alarm-sound" src="https://downsc.chinaz.net/Files/DownLoad/sound1/202303/y1698.mp3" preload="auto"></audio>
+    </div>
+
+    <script>
+        const currentTimeDisplay = document.getElementById('current-time');
+        const alarmsList = document.getElementById('alarms-list');
+        const alarmSound = document.getElementById('alarm-sound');
+        const stopAlarmDiv = document.getElementById('stop-alarm');
+
+        let alarms = [];
+
+        function updateTime() {
+            const now = new Date();
+            const day = now.getDay();
+            const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            currentTimeDisplay.textContent = now.toLocaleTimeString();
+
+            alarms.forEach((alarm, index) => {
+                if (alarm.time === time && alarm.days.includes(day)) {
+                    triggerAlarm(index);
+                }
+            });
+        }
+
+        function addAlarm() {
+            const alarmTime = document.getElementById('alarm-time').value;
+            const days = Array.from(document.querySelectorAll('.days-selector input:checked')).map(input => parseInt(input.value));
+
+            if (alarmTime && days.length > 0) {
+                const alarm = { time: alarmTime, days };
+                alarms.push(alarm);
+                updateAlarmsList();
+            } else {
+                alert('Please set a valid time and select at least one day.');
+            }
+        }
+
+        function updateAlarmsList() {
+            alarmsList.innerHTML = '';
+            alarms.forEach((alarm, index) => {
+                const days = alarm.days.map(day => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][day]).join(', ');
+                const li = document.createElement('li');
+                li.textContent = `${alarm.time} (${days})`;
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.onclick = () => deleteAlarm(index);
+
+                li.appendChild(deleteButton);
+                alarmsList.appendChild(li);
+            });
+        }
+
+        function deleteAlarm(index) {
+            alarms.splice(index, 1);
+            updateAlarmsList();
+        }
+
+        function triggerAlarm(index) {
+            alarmSound.play();
+            stopAlarmDiv.style.display = 'block';
+            deleteAlarm(index);
+        }
+
+        function stopAlarm() {
+            alarmSound.pause();
+            alarmSound.currentTime = 0;
+            stopAlarmDiv.style.display = 'none';
+        }
+
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
