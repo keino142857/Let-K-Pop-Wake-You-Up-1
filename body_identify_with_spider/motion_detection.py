@@ -1,23 +1,49 @@
-import cv2
-import mediapipe as mp
+// 載入 MediaPipe 的 Pose 解決方案
+import { Pose } from "@mediapipe/pose";
+import { Camera } from "@mediapipe/camera_utils";
 
-# 初始化 mediapipe 姿勢檢測
-mp_pose = mp.solutions.pose
+async function motionDetected() {
+  // 取得影片流 (Camera)
+  const videoElement = document.createElement("video");
+  videoElement.style.display = "none";
+  document.body.appendChild(videoElement);
 
-def motion_detected():
-    cap = cv2.VideoCapture(1)
-    ret, frame = cap.read()
-    if not ret:
-        cap.release()
-        return False
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  videoElement.srcObject = stream;
 
-    # 初始化 Pose 模型
-    with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = pose.process(frame_rgb)  # 使用 pose 進行處理
+  return new Promise((resolve) => {
+    // 初始化 MediaPipe Pose
+    const pose = new Pose({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
+    });
 
-    cap.release()  # 釋放攝像頭
+    pose.setOptions({
+      modelComplexity: 1,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5,
+    });
 
-    # 檢查是否有偵測到姿勢標記
-    return results.pose_landmarks is not None
+    pose.onResults((results) => {
+      // 檢查是否檢測到姿勢標記
+      const detected = results.poseLandmarks && results.poseLandmarks.length > 0;
+      stream.getTracks().forEach((track) => track.stop()); // 停止攝像頭
+      videoElement.remove(); // 移除 video 元素
+      resolve(detected);
+    });
 
+    const camera = new Camera(videoElement, {
+      onFrame: async () => {
+        await pose.send({ image: videoElement });
+      },
+      width: 640,
+      height: 480,
+    });
+
+    camera.start();
+  });
+}
+
+// 使用範例
+motionDetected().then((detected) => {
+  console.log("Motion detected:", detected);
+});
