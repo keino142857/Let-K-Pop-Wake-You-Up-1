@@ -1,0 +1,4 @@
+CREATE TABLE example_table (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    time INT NOT NULL
+);
