@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for, request, jsonify
 import threading
 import time
 import pygame
-from information import speak_weather_info, speak_news_info, speak_book_info, play_countdown
+from information import speak_weather_info, speak_book_info, play_countdown
 from weather import fetch_weather
 from book import fetch_book
 import webbrowser
