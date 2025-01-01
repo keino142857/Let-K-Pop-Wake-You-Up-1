@@ -1,4 +1,4 @@
-# README
+# 讓 K-Pop 叫你起床 
 
 
 
@@ -98,7 +98,7 @@
 
 - 登入按下去就對了。
 ![螢幕擷取畫面 2025-01-01 211733](https://hackmd.io/_uploads/B1bEWaf81l.png)
-
+   
 - 按加入會員。
 ![螢幕擷取畫面 2025-01-01 211820](https://hackmd.io/_uploads/B1aS-pfLJl.png)
 
@@ -135,5 +135,3 @@
     - ```shell= 
       text='南投縣'
       ```
-
- 
