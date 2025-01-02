@@ -18,9 +18,9 @@ alarm_thread = None
 person_detected = False
 motion_detected_flag = False
 
+vlc_path = "/usr/bin/vlc"  # VLC 安裝的路徑
 def play_with_vlc():
     """使用 VLC 播放 .m4a 音效檔案"""
-    vlc_path = "/usr/bin/vlc"  # VLC 安裝的路徑
     alarm_sound_path = os.path.join(BASE_DIR, 'static', 'music', 'alarm.m4a')  # 音效檔案路徑
 
     try:
