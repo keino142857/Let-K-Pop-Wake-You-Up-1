@@ -37,7 +37,7 @@ def alarm():
         alarm_thread = threading.Thread(target=play_alarm)
         alarm_thread.start()
     
-    webbrowser.open('http://0.0.0.0:5000/')
+    webbrowser.open('http://192.168.100.79:5000/')
     
     # 偵測是否有人
     while not motion_detected():
