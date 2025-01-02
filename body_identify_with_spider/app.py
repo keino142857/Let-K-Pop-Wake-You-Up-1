@@ -16,6 +16,8 @@ app = Flask(__name__)
 alarm_playing = False
 alarm_thread = None
 pygame.init()
+person_detected = False
+motion_detected_flag = False
 
 def initialize_audio():
     try:
@@ -47,12 +49,33 @@ def play_alarm():
     
     # 建構音效檔案的完整路徑
     alarm_sound_path = os.path.join(BASE_DIR, 'static', 'music', 'alarm.m4a')
+    
+    try:
+        if os.path.exists(alarm_sound_path):
+            sound = pygame.mixer.Sound(alarm_sound_path)
+            while alarm_playing:
+                sound.play()
+                time.sleep(1)
+        else:
+            print(f"找不到音效檔案: {alarm_sound_path}")
+            print(f"當前目錄: {BASE_DIR}")
+            print(f"嘗試訪問的完整路徑: {alarm_sound_path}")
+    except Exception as e:
+        print(f"播放音效時發生錯誤: {e}")
 
 # 停止鬧鐘音效
 def stop_alarm():
     global alarm_playing
     alarm_playing = False
     pygame.mixer.stop()
+
+@app.route('/motion_detected', methods=['POST'])
+def handle_motion():
+    global motion_detected_flag
+    data = request.get_json()
+    motion_detected_flag = data.get("detected", False)  # 從前端請求中獲得偵測結果
+    print(f"收到的運動偵測結果: {motion_detected_flag}")
+    return jsonify({"status": "success"}), 200
 
 # 當手機發送 HTTP 請求時觸發
 @app.route('/alarm', methods=['POST'])
@@ -68,7 +91,7 @@ def alarm():
     webbrowser.open('http://192.168.100.79:5000/')
     
     # 偵測是否有人
-    while not motion_detected():
+    while not motion_detected_flag():
         print("沒有人在鏡頭前，繼續播放警報音！")
         time.sleep(1)  # 每秒檢查一次
 

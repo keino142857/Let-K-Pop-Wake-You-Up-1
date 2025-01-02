@@ -28,6 +28,16 @@ async function motionDetected() {
       const detected = results.poseLandmarks && results.poseLandmarks.length > 0;
       stream.getTracks().forEach((track) => track.stop()); // 停止攝像頭
       videoElement.remove(); // 移除 video 元素
+
+      // 發送結果到後端
+      fetch('/motion_detected', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ detected: detected })
+      });
+
       resolve(detected);
     });
 
