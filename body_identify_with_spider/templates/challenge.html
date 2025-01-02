@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>上半身動作偵測</title>
+    <title>背景音效與動作偵測</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
     <style>
@@ -46,11 +46,34 @@
             <img id="actionImage" src="" alt="動作圖示">
         </div>
     </div>
+    <audio id="backgroundMusic" src="static/music/supernova.m4a" autoplay loop></audio>
     <script>
         const videoElement = document.getElementById("inputVideo");
         const canvasElement = document.getElementById("outputCanvas");
         const canvasCtx = canvasElement.getContext("2d");
         const actionImage = document.getElementById("actionImage");
+        const backgroundMusic = document.getElementById("backgroundMusic");
+
+        const pauseTimes = [5, 15, 25]; // 預設背景音效的暫停時間（秒）
+        const imagePaths = [
+            "static/photo/supernova1.png",
+            "static/photo/supernova2.png",
+            "static/photo/supernova3.png",
+        ];
+
+        let currentPauseIndex = 0; // 紀錄當前的暫停階段
+
+        backgroundMusic.addEventListener("timeupdate", () => {
+            if (currentPauseIndex < pauseTimes.length && backgroundMusic.currentTime >= pauseTimes[currentPauseIndex]) {
+                backgroundMusic.pause();
+                actionImage.src = imagePaths[currentPauseIndex]; // 顯示對應圖片
+                setTimeout(() => {
+                    actionImage.src = ""; // 移除圖片
+                    backgroundMusic.play();
+                    currentPauseIndex++;
+                }, 3000); // 暫停3秒後繼續播放
+            }
+        });
 
         const pose = new Pose({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
@@ -78,9 +101,11 @@
                 const rightElbow = landmarks[14];
                 const leftWrist = landmarks[15];
                 const rightWrist = landmarks[16];
+                const leftHip = landmarks[23];
+                const rightHip = landmarks[24];
 
                 // 標記這些點
-                const pointsToDraw = [head, leftShoulder, rightShoulder, leftWrist, rightWrist, leftElbow, rightElbow];
+                const pointsToDraw = [head, leftShoulder, rightShoulder, leftElbow, rightElbow, leftWrist, rightWrist, leftHip, rightHip];
                 pointsToDraw.forEach((point) => {
                     canvasCtx.beginPath();
                     canvasCtx.arc(point.x * canvasElement.width, point.y * canvasElement.height, 5, 0, 2 * Math.PI);
@@ -88,33 +113,19 @@
                     canvasCtx.fill();
                 });
 
-                // 顯示名稱
-                const labels = ["頭部", "左肩", "右肩", "左手腕", "右手腕"];
-                pointsToDraw.forEach((point, index) => {
-                    canvasCtx.fillStyle = "white";
-                    canvasCtx.fillText(
-                        labels[index],
-                        point.x * canvasElement.width + 10,
-                        point.y * canvasElement.height - 10
-                    );
-                });
-
                 // 畫連接線
                 canvasCtx.beginPath();
                 canvasCtx.moveTo(leftShoulder.x * canvasElement.width, leftShoulder.y * canvasElement.height);
+                canvasCtx.lineTo(leftElbow.x * canvasElement.width, leftElbow.y * canvasElement.height);
                 canvasCtx.lineTo(leftWrist.x * canvasElement.width, leftWrist.y * canvasElement.height);
+
                 canvasCtx.moveTo(rightShoulder.x * canvasElement.width, rightShoulder.y * canvasElement.height);
+                canvasCtx.lineTo(rightElbow.x * canvasElement.width, rightElbow.y * canvasElement.height);
                 canvasCtx.lineTo(rightWrist.x * canvasElement.width, rightWrist.y * canvasElement.height);
+
                 canvasCtx.strokeStyle = "blue";
                 canvasCtx.lineWidth = 2;
                 canvasCtx.stroke();
-
-                // 動作對應圖片顯示
-                if (leftWrist.y < leftShoulder.y && rightWrist.y < rightShoulder.y) {
-                    actionImage.src = "static/photo/supernova1.png"; // 顯示 supernova1.png
-                } else {
-                    actionImage.src = ""; // 若無動作則清空圖片
-                }
             }
         });
 
