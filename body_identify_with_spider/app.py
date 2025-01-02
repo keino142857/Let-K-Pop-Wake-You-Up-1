@@ -74,51 +74,8 @@ def index():
 
 @app.route('/challenge')
 def challenge():
-    # 播放倒數音效
-    play_countdown()
-
-    print("開始動作辨識...")
-    action_time_points = {
-        4: 'supernova1',
-        7: 'supernova2',
-        20: 'supernova3',
-    }
-
-    start_time = time.time()  # 記錄開始時間
-    completed_action = False
-
-    action_images = {
-        'supernova1': 'static/photo/supernova1.png',
-        'supernova2': 'static/photo/supernova2.png',
-        'supernova3': 'static/photo/supernova3.png',
-    }
-
-    while time.time() - start_time < 60:  # 60 秒內進行動作辨識
-        print("檢查動作是否完成...")
-        # 前端應通知後端檢測結果，此處假設後端僅等待通知
-        if person_detected:
-            print("完成動作！")
-            subprocess.Popen([vlc_path, "static/sound/correct.mp3", '--intf', 'dummy']).wait()
-            completed_action = True
-            break
-        time.sleep(1)
-
-    # 如果在 60 秒內沒完成動作，播放鬧鐘並繼續偵測
-    if not completed_action:
-        print("未完成動作，播放鬧鐘並繼續偵測！")
-        play_with_vlc()
-
-    # 設定圖片依照時間點動態變化
-    elapsed_time = time.time() - start_time
-    current_image = None
-    if elapsed_time >= 20:
-        current_image = action_images['supernova3']
-    elif elapsed_time >= 7:
-        current_image = action_images['supernova2']
-    elif elapsed_time >= 4:
-        current_image = action_images['supernova1']
-
-    return render_template('challenge.html', action_image=current_image)
+   
+    return render_template('challenge.html')
 
 if __name__ == "__main__":
     # 語音播放
