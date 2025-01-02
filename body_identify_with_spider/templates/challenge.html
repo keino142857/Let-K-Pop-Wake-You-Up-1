@@ -54,24 +54,20 @@
         const actionImage = document.getElementById("actionImage");
         const backgroundMusic = document.getElementById("backgroundMusic");
 
-        const pauseTimes = [5, 15, 25]; // 預設背景音效的暫停時間（秒）
+        const pauseTimes = [5, 15, 25]; // 背景音效的暫停時間（秒）
         const imagePaths = [
             "static/photo/supernova1.png",
             "static/photo/supernova2.png",
             "static/photo/supernova3.png",
         ];
 
+        const requiredActions = ["headRaise", "handsUp", "hipTilt"];
         let currentPauseIndex = 0; // 紀錄當前的暫停階段
 
         backgroundMusic.addEventListener("timeupdate", () => {
             if (currentPauseIndex < pauseTimes.length && backgroundMusic.currentTime >= pauseTimes[currentPauseIndex]) {
                 backgroundMusic.pause();
                 actionImage.src = imagePaths[currentPauseIndex]; // 顯示對應圖片
-                setTimeout(() => {
-                    actionImage.src = ""; // 移除圖片
-                    backgroundMusic.play();
-                    currentPauseIndex++;
-                }, 3000); // 暫停3秒後繼續播放
             }
         });
 
@@ -87,14 +83,11 @@
 
         pose.onResults((results) => {
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
-            // 畫背景影像
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
             if (results.poseLandmarks) {
-                // 偵測上半身的關鍵點
                 const landmarks = results.poseLandmarks;
-                const head = landmarks[0]; // 鼻子 (代表頭部中心點)
+                const head = landmarks[0];
                 const leftShoulder = landmarks[11];
                 const rightShoulder = landmarks[12];
                 const leftElbow = landmarks[13];
@@ -104,7 +97,6 @@
                 const leftHip = landmarks[23];
                 const rightHip = landmarks[24];
 
-                // 標記這些點
                 const pointsToDraw = [head, leftShoulder, rightShoulder, leftElbow, rightElbow, leftWrist, rightWrist, leftHip, rightHip];
                 pointsToDraw.forEach((point) => {
                     canvasCtx.beginPath();
@@ -113,7 +105,6 @@
                     canvasCtx.fill();
                 });
 
-                // 畫連接線
                 canvasCtx.beginPath();
                 canvasCtx.moveTo(leftShoulder.x * canvasElement.width, leftShoulder.y * canvasElement.height);
                 canvasCtx.lineTo(leftElbow.x * canvasElement.width, leftElbow.y * canvasElement.height);
@@ -126,8 +117,25 @@
                 canvasCtx.strokeStyle = "blue";
                 canvasCtx.lineWidth = 2;
                 canvasCtx.stroke();
+
+                // 偵測指定動作
+                const currentAction = requiredActions[currentPauseIndex];
+
+                if (currentAction === "headRaise" && head.y < leftShoulder.y) {
+                    actionComplete();
+                } else if (currentAction === "handsUp" && leftWrist.y < leftShoulder.y && rightWrist.y < rightShoulder.y) {
+                    actionComplete();
+                } else if (currentAction === "hipTilt" && leftHip.y > leftShoulder.y && rightHip.y > rightShoulder.y) {
+                    actionComplete();
+                }
             }
         });
+
+        function actionComplete() {
+            actionImage.src = ""; // 移除圖片
+            backgroundMusic.play();
+            currentPauseIndex++;
+        }
 
         navigator.mediaDevices.getUserMedia({ video: true })
             .then((stream) => {
