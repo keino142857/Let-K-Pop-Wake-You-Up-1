@@ -52,7 +52,7 @@ def alarm():
         alarm_thread = threading.Thread(target=play_with_vlc)
         alarm_thread.start()
     
-    webbrowser.open('http://192.168.100.79:5000/')
+    webbrowser.open('http://192.168.1.151:5000/')
     
     # 偵測是否有人
     while not motion_detected_flag:
