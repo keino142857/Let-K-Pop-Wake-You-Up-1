@@ -36,12 +36,10 @@ def stop_vlc_alarm():
     print("停止 VLC 播放音效 (這需要進一步控制 VLC 進程)")
 
 @app.route('/motion_detected', methods=['POST'])
-def handle_motion():
-    global motion_detected_flag
-    data = request.get_json()
-    motion_detected_flag = data.get("detected", False)  # 從前端請求中獲得偵測結果
-    print(f"收到的運動偵測結果: {motion_detected_flag}")
-    return jsonify({"status": "success"}), 200
+def handle_motion_detected():
+    global person_detected
+    person_detected = True
+    return jsonify({"status": "success"})
 
 # 當手機發送 HTTP 請求時觸發
 @app.route('/alarm', methods=['POST'])
