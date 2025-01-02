@@ -185,6 +185,18 @@
             alarmSound.pause();
             alarmSound.currentTime = 0;
             stopAlarmDiv.style.display = 'none';
+
+            // Trigger API request
+            fetch('http://192.168.100.79:5001/alarm', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: 'Alarm stopped' }),
+            })
+            .then(response => response.json())
+            .then(data => console.log('API response:', data))
+            .catch(error => console.error('Error:', error));
         }
 
         setInterval(updateTime, 1000);
