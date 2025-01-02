@@ -64,20 +64,22 @@ def alarm():
     if not alarm_playing:
         alarm_thread = threading.Thread(target=play_alarm)
         alarm_thread.start()
+    
+    webbrowser.open('http://192.168.100.79:5000/')
+    
+    # 偵測是否有人
+    while not motion_detected():
+        print("沒有人在鏡頭前，繼續播放警報音！")
+        time.sleep(1)  # 每秒檢查一次
 
-    webbrowser.open('http://0.0.0.0:5001/')
-    return jsonify({"message": "Alarm started!"})
+    # 偵測到有人後停止鬧鐘並播放倒數 5 秒
+    print("偵測到有人！停止鬧鐘並開始倒數。")
+    alarm_playing = False  # 停止鬧鐘音效
+    if alarm_thread.is_alive():
+        alarm_thread.join()
 
-# 用於接收前端是否有人被檢測到的更新
-@app.route('/person_detected', methods=['POST'])
-def person_detected_api():
-    global person_detected
-    person_detected = request.json.get('detected', False)
-    if person_detected:
-        stop_alarm()
-        print("檢測到有人，鬧鐘已停止！")
-    return jsonify({"message": "Person detection updated!"})
-
+    return redirect(url_for('challenge'))
+    
 @app.route('/')
 def index():
     # 顯示初始頁面
