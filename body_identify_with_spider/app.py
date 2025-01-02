@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for, request, jsonify
 import threading
 import time
 import os
-import pygame
+import subprocess
 from information import speak_weather_info, speak_book_info, play_countdown
 from weather import fetch_weather
 from book import fetch_book
@@ -15,59 +15,25 @@ app = Flask(__name__)
 # 共享變數來控制鬧鐘音效的播放
 alarm_playing = False
 alarm_thread = None
-pygame.init()
 person_detected = False
 motion_detected_flag = False
 
-def initialize_audio():
-    try:
-        # 在初始化前先確保清理任何現有的 pygame 實例
-        pygame.mixer.quit()
-        
-        # 設定音訊參數
-        pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=2048)
-        
-        # 測試音訊系統
-        pygame.mixer.music.set_volume(1.0)
-        print("音訊系統初始化成功")
-        
-    except Exception as e:
-        print(f"音訊初始化錯誤: {e}")
-        
-        # 嘗試使用備用設定
-        try:
-            pygame.mixer.init(frequency=22050, size=-16, channels=1, buffer=4096)
-            print("使用備用音訊設定初始化成功")
-        except Exception as e:
-            print(f"備用音訊初始化也失敗: {e}")
-            return False
-    return True
+def play_with_vlc():
+    """使用 VLC 播放 .m4a 音效檔案"""
+    vlc_path = "/usr/bin/vlc"  # VLC 安裝的路徑
+    alarm_sound_path = os.path.join(BASE_DIR, 'static', 'music', 'alarm.m4a')  # 音效檔案路徑
 
-def play_alarm():
-    global alarm_playing
-    alarm_playing = True
-    
-    # 建構音效檔案的完整路徑
-    alarm_sound_path = os.path.join(BASE_DIR, 'static', 'music', 'alarm.m4a')
-    
     try:
-        if os.path.exists(alarm_sound_path):
-            sound = pygame.mixer.Sound(alarm_sound_path)
-            while alarm_playing:
-                sound.play()
-                time.sleep(1)
-        else:
-            print(f"找不到音效檔案: {alarm_sound_path}")
-            print(f"當前目錄: {BASE_DIR}")
-            print(f"嘗試訪問的完整路徑: {alarm_sound_path}")
+        # 使用 subprocess 執行 VLC 播放
+        subprocess.Popen([vlc_path, alarm_sound_path, '--intf', 'dummy'])  # 使用 dummy 介面不顯示 VLC 視窗
+        print("音效正在播放...")
     except Exception as e:
-        print(f"播放音效時發生錯誤: {e}")
+        print(f"無法啟動 VLC 播放音效: {e}")
 
-# 停止鬧鐘音效
-def stop_alarm():
-    global alarm_playing
-    alarm_playing = False
-    pygame.mixer.stop()
+def stop_vlc_alarm():
+    """停止 VLC 播放音效"""
+    # VLC 播放器停止功能可以進一步研究，通常 VLC 沒有簡單的 stop 命令，可能需要控制 VLC 進程
+    print("停止 VLC 播放音效 (這需要進一步控制 VLC 進程)")
 
 @app.route('/motion_detected', methods=['POST'])
 def handle_motion():
@@ -85,13 +51,13 @@ def alarm():
 
     # 播放鬧鐘直到偵測到使用者
     if not alarm_playing:
-        alarm_thread = threading.Thread(target=play_alarm)
+        alarm_thread = threading.Thread(target=play_with_vlc)
         alarm_thread.start()
     
     webbrowser.open('http://192.168.100.79:5000/')
     
     # 偵測是否有人
-    while not motion_detected_flag():
+    while not motion_detected_flag:
         print("沒有人在鏡頭前，繼續播放警報音！")
         time.sleep(1)  # 每秒檢查一次
 
@@ -134,7 +100,7 @@ def challenge():
         # 前端應通知後端檢測結果，此處假設後端僅等待通知
         if person_detected:
             print("完成動作！")
-            pygame.mixer.Sound("static/sound/correct.mp3").play()
+            subprocess.Popen([vlc_path, "static/sound/correct.mp3", '--intf', 'dummy']).wait()
             completed_action = True
             break
         time.sleep(1)
@@ -142,7 +108,7 @@ def challenge():
     # 如果在 60 秒內沒完成動作，播放鬧鐘並繼續偵測
     if not completed_action:
         print("未完成動作，播放鬧鐘並繼續偵測！")
-        play_alarm()
+        play_with_vlc()
 
     # 設定圖片依照時間點動態變化
     elapsed_time = time.time() - start_time
@@ -157,13 +123,11 @@ def challenge():
     return render_template('challenge.html', action_image=current_image)
 
 if __name__ == "__main__":
-    # 初始化音訊系統
-    if initialize_audio():
-        # 語音播放
-        speak_weather_info(fetch_weather())
-        speak_book_info(fetch_book())
-        
-        try:
-            app.run(host="0.0.0.0", port=5001, debug=True, use_reloader=False)
-        except Exception as e:
-            print(f"Error: {e}")
+    # 語音播放
+    speak_weather_info(fetch_weather())
+    speak_book_info(fetch_book())
+    
+    try:
+        app.run(host="0.0.0.0", port=5001, debug=True, use_reloader=False)
+    except Exception as e:
+        print(f"Error: {e}")
