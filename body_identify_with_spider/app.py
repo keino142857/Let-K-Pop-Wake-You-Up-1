@@ -21,7 +21,7 @@ def play_alarm():
     global alarm_playing
     alarm_playing = True
     while alarm_playing:
-        pygame.mixer.Sound("static/sound/alarm.m4a").play()
+        pygame.mixer.Sound("static/music/alarm.m4a").play()
         time.sleep(1)
 
 # 停止鬧鐘音效
@@ -115,6 +115,6 @@ speak_book_info(fetch_book())
 
 try:
     if __name__ == "__main__":
-        app.run(host="0.0.0.0", port=5001, debug=True)
+        app.run(host="0.0.0.0", port=5001, debug=True, use_reloader=False)
 except Exception as e:
     print(f"Error: {e}")
