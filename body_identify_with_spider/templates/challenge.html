@@ -2,69 +2,137 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>舞蹈挑戰</title>
+    <title>上半身動作偵測</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #1c1c1c;
-            color: white;
+            margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
+            background-color: black;
+            color: white;
         }
         .container {
-            width: 80%;
             display: flex;
-            justify-content: space-between;
             align-items: center;
         }
-        #video {
-            width: 40%;
-            background-color: #333;
-            height: 400px;
+        canvas {
+            border: 1px solid white;
             margin-right: 20px;
         }
-        #motion-detection {
-            width: 55%;
-            background-color: #444;
-            height: 400px;
+        .image-container {
+            width: 300px;
+            height: 480px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid white;
+            background-color: #1c1c1c;
         }
-        h2 {
-            text-align: center;
-            font-size: 2em;
-            margin-bottom: 30px;
+        .image-container img {
+            max-width: 100%;
+            max-height: 100%;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="video">
-            <video id="videoPlayer" width="100%" height="100%" controls  autoplay>
-                <source src="{{ url_for('static', filename='videos/TXT.mp4') }}" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-        </div>
-        <div id="motion-detection">
-            <h2>動作偵測畫面</h2>
+        <video id="inputVideo" autoplay style="display: none;"></video>
+        <canvas id="outputCanvas" width="640" height="480"></canvas>
+        <div class="image-container">
+            <img id="actionImage" src="" alt="動作圖示">
         </div>
     </div>
-
     <script>
-        var pauseTime = {{ pause_time }};
-        var video = document.getElementById("videoPlayer");
+        const videoElement = document.getElementById("inputVideo");
+        const canvasElement = document.getElementById("outputCanvas");
+        const canvasCtx = canvasElement.getContext("2d");
+        const actionImage = document.getElementById("actionImage");
 
-        video.onplay = function() {
-            setTimeout(function() {
-                video.pause();
-                //alert("影片已暫停！將在 " + pauseTime + " 秒後繼續播放。");
-                setTimeout(function() {
-                    video.play();
-                }, 5000); 
-            }, pauseTime * 1000); 
-        };
+        const pose = new Pose({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
+        });
+
+        pose.setOptions({
+            modelComplexity: 1,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5,
+        });
+
+        pose.onResults((results) => {
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            // 畫背景影像
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            if (results.poseLandmarks) {
+                // 偵測上半身的關鍵點
+                const landmarks = results.poseLandmarks;
+                const head = landmarks[0]; // 鼻子 (代表頭部中心點)
+                const leftShoulder = landmarks[11];
+                const rightShoulder = landmarks[12];
+                const leftElbow = landmarks[13];
+                const rightElbow = landmarks[14];
+                const leftWrist = landmarks[15];
+                const rightWrist = landmarks[16];
+
+                // 標記這些點
+                const pointsToDraw = [head, leftShoulder, rightShoulder, leftWrist, rightWrist, leftElbow, rightElbow];
+                pointsToDraw.forEach((point) => {
+                    canvasCtx.beginPath();
+                    canvasCtx.arc(point.x * canvasElement.width, point.y * canvasElement.height, 5, 0, 2 * Math.PI);
+                    canvasCtx.fillStyle = "red";
+                    canvasCtx.fill();
+                });
+
+                // 顯示名稱
+                const labels = ["頭部", "左肩", "右肩", "左手腕", "右手腕"];
+                pointsToDraw.forEach((point, index) => {
+                    canvasCtx.fillStyle = "white";
+                    canvasCtx.fillText(
+                        labels[index],
+                        point.x * canvasElement.width + 10,
+                        point.y * canvasElement.height - 10
+                    );
+                });
+
+                // 畫連接線
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(leftShoulder.x * canvasElement.width, leftShoulder.y * canvasElement.height);
+                canvasCtx.lineTo(leftWrist.x * canvasElement.width, leftWrist.y * canvasElement.height);
+                canvasCtx.moveTo(rightShoulder.x * canvasElement.width, rightShoulder.y * canvasElement.height);
+                canvasCtx.lineTo(rightWrist.x * canvasElement.width, rightWrist.y * canvasElement.height);
+                canvasCtx.strokeStyle = "blue";
+                canvasCtx.lineWidth = 2;
+                canvasCtx.stroke();
+
+                // 動作對應圖片顯示
+                if (leftWrist.y < leftShoulder.y && rightWrist.y < rightShoulder.y) {
+                    actionImage.src = "static/photo/supernova1.png"; // 顯示 supernova1.png
+                } else {
+                    actionImage.src = ""; // 若無動作則清空圖片
+                }
+            }
+        });
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                videoElement.srcObject = stream;
+                videoElement.play();
+
+                const camera = new Camera(videoElement, {
+                    onFrame: async () => {
+                        await pose.send({ image: videoElement });
+                    },
+                    width: 640,
+                    height: 480,
+                });
+                camera.start();
+            })
+            .catch((error) => console.error("無法啟用相機：", error));
     </script>
 </body>
 </html>

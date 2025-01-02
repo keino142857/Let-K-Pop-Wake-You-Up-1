@@ -3,15 +3,15 @@ import { Camera } from "@mediapipe/camera_utils";
 
 async function motionDetected() {
   const stream = await navigator.mediaDevices.getUserMedia({ video: true }).catch(error => {
-    console.error("無法取得攝像頭權限:", error);
+    console.error("無法取得鏡頭權限:", error);
   });
 
   if (stream) {
-    console.log("攝像頭已開啟");
+    console.log("鏡頭已開啟");
     const videoElement = document.createElement("video");
     videoElement.srcObject = stream;
     videoElement.play().catch((error) => {
-      console.error("無法播放攝像頭流:", error);
+      console.error("無法播放鏡頭:", error);
     });
     videoElement.style.display = "none";
     document.body.appendChild(videoElement);
