@@ -61,7 +61,7 @@
             "static/photo/supernova3.png",
         ];
 
-        const requiredActions = ["headRaise", "handsUp", "hipTilt"];
+        const requiredActions = ["pose1", "crossArms", "bunnyEars"];
         let currentPauseIndex = 0; // 紀錄當前的暫停階段
 
         backgroundMusic.addEventListener("timeupdate", () => {
@@ -121,11 +121,26 @@
                 // 偵測指定動作
                 const currentAction = requiredActions[currentPauseIndex];
 
-                if (currentAction === "headRaise" && head.y < leftShoulder.y) {
+                if (currentAction === "pose1" && 
+                    head.y < leftShoulder.y &&
+                    leftElbow.y < leftShoulder.y && rightElbow.y < rightShoulder.y &&
+                    leftWrist.x < leftElbow.x && rightWrist.x > rightElbow.x &&
+                    leftHip.x < leftShoulder.x && rightHip.x > rightShoulder.x
+                ) {
                     actionComplete();
-                } else if (currentAction === "handsUp" && leftWrist.y < leftShoulder.y && rightWrist.y < rightShoulder.y) {
+                } else if (currentAction === "crossArms" && 
+                    leftWrist.x > rightWrist.x &&
+                    leftWrist.y < head.y &&
+                    rightWrist.y < head.y &&
+                    leftElbow.y > leftWrist.y &&
+                    rightElbow.y > rightWrist.y
+                ) {
                     actionComplete();
-                } else if (currentAction === "hipTilt" && leftHip.y > leftShoulder.y && rightHip.y > rightShoulder.y) {
+                } else if (currentAction === "bunnyEars" && 
+                    leftWrist.y < head.y && rightWrist.y < head.y &&
+                    leftElbow.y < leftShoulder.y && rightElbow.y < rightShoulder.y &&
+                    leftWrist.x < leftElbow.x && rightWrist.x > rightElbow.x
+                ) {
                     actionComplete();
                 }
             }
