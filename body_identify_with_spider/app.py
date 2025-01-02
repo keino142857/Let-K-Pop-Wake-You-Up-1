@@ -1,14 +1,10 @@
-from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, render_template, redirect, url_for, request, jsonify
 import threading
 import time
-from playsound import playsound
 import pygame
-from information import speak_weather_info, speak_news_info, speak_book_info, play_countdown
-from weather import fetch_weather  
-#from news import fetch_latest_news
-from book import fetch_book  
-from action_recognition import handle_action_check, start_camera
-from motion_detection import motion_detected
+from information import speak_weather_info, speak_book_info, play_countdown
+from weather import fetch_weather
+from book import fetch_book
 import webbrowser
 
 app = Flask(__name__)
@@ -16,21 +12,29 @@ app = Flask(__name__)
 # 共享變數來控制鬧鐘音效的播放
 alarm_playing = False
 alarm_thread = None
+person_detected = False
+
+pygame.init()
 
 # 播放鬧鐘音效
 def play_alarm():
     global alarm_playing
     alarm_playing = True
     while alarm_playing:
-        pygame.mixer.Sound("alarm.m4a").play()
+        pygame.mixer.Sound("static/sound/alarm.m4a").play()
         time.sleep(1)
+
+# 停止鬧鐘音效
+def stop_alarm():
+    global alarm_playing
+    alarm_playing = False
+    pygame.mixer.stop()
 
 # 當手機發送 HTTP 請求時觸發
 @app.route('/alarm', methods=['POST'])
 def alarm():
     global alarm_playing, alarm_thread
     print("收到鬧鐘通知！")
-    start_camera()
 
     # 播放鬧鐘直到偵測到使用者
     if not alarm_playing:
@@ -80,11 +84,8 @@ def challenge():
 
     while time.time() - start_time < 60:  # 60 秒內進行動作辨識
         print("檢查動作是否完成...")
-        pose_landmarks = motion_detected()  # 獲取用戶的姿勢標記
-
-        # 假設我們使用 handle_action_check 函數來檢查動作
-        action_completed = handle_action_check(action_time_points, pose_landmarks)
-        if action_completed:
+        # 前端應通知後端檢測結果，此處假設後端僅等待通知
+        if person_detected:
             print("完成動作！")
             pygame.mixer.Sound("static/sound/correct.mp3").play()
             completed_action = True
@@ -94,35 +95,26 @@ def challenge():
     # 如果在 60 秒內沒完成動作，播放鬧鐘並繼續偵測
     if not completed_action:
         print("未完成動作，播放鬧鐘並繼續偵測！")
-        alarm_playing = True
-        while not motion_detected():
-            playsound("static/music/alarm.m4a")  # 播放鬧鐘
-            time.sleep(1)
-        print("偵測到人，停止鬧鐘並重新開始挑戰")
+        play_alarm()
 
     # 設定圖片依照時間點動態變化
-    current_image = None
     elapsed_time = time.time() - start_time
-    if elapsed_time >= 4:
-        current_image = action_images['supernova1']
+    current_image = None
+    if elapsed_time >= 20:
+        current_image = action_images['supernova3']
     elif elapsed_time >= 7:
         current_image = action_images['supernova2']
-    elif elapsed_time >= 20:
-        current_image = action_images['supernova3']
+    elif elapsed_time >= 4:
+        current_image = action_images['supernova1']
 
-    # 返回頁面並顯示相應圖片
-    pause_time = request.args.get('pause_time', default=11, type=int)
-    return render_template('challenge.html', pause_time=pause_time, action_image=current_image)
-
+    return render_template('challenge.html', action_image=current_image)
 
 # 語音播放
 speak_weather_info(fetch_weather())
-#speak_news_info(fetch_latest_news())
 speak_book_info(fetch_book())
 
 try:
     if __name__ == "__main__":
-        app.run(host="0.0.0.0", port=5001,debug=True)
+        app.run(host="0.0.0.0", port=5001, debug=True)
 except Exception as e:
     print(f"Error: {e}")
-
