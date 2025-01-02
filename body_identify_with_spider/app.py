@@ -1,28 +1,52 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify
 import threading
 import time
+import os
 import pygame
 from information import speak_weather_info, speak_book_info, play_countdown
 from weather import fetch_weather
 from book import fetch_book
 import webbrowser
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 app = Flask(__name__)
 
 # 共享變數來控制鬧鐘音效的播放
 alarm_playing = False
 alarm_thread = None
-person_detected = False
-
 pygame.init()
 
-# 播放鬧鐘音效
+def initialize_audio():
+    try:
+        # 在初始化前先確保清理任何現有的 pygame 實例
+        pygame.mixer.quit()
+        
+        # 設定音訊參數
+        pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=2048)
+        
+        # 測試音訊系統
+        pygame.mixer.music.set_volume(1.0)
+        print("音訊系統初始化成功")
+        
+    except Exception as e:
+        print(f"音訊初始化錯誤: {e}")
+        
+        # 嘗試使用備用設定
+        try:
+            pygame.mixer.init(frequency=22050, size=-16, channels=1, buffer=4096)
+            print("使用備用音訊設定初始化成功")
+        except Exception as e:
+            print(f"備用音訊初始化也失敗: {e}")
+            return False
+    return True
+
 def play_alarm():
     global alarm_playing
     alarm_playing = True
-    while alarm_playing:
-        pygame.mixer.Sound("static/music/alarm.m4a").play()
-        time.sleep(1)
+    
+    # 建構音效檔案的完整路徑
+    alarm_sound_path = os.path.join(BASE_DIR, 'static', 'music', 'alarm.m4a')
 
 # 停止鬧鐘音效
 def stop_alarm():
@@ -107,12 +131,14 @@ def challenge():
 
     return render_template('challenge.html', action_image=current_image)
 
-# 語音播放
-speak_weather_info(fetch_weather())
-speak_book_info(fetch_book())
-
-try:
-    if __name__ == "__main__":
-        app.run(host="0.0.0.0", port=5001, debug=True, use_reloader=False)
-except Exception as e:
-    print(f"Error: {e}")
+if __name__ == "__main__":
+    # 初始化音訊系統
+    if initialize_audio():
+        # 語音播放
+        speak_weather_info(fetch_weather())
+        speak_book_info(fetch_book())
+        
+        try:
+            app.run(host="0.0.0.0", port=5001, debug=True, use_reloader=False)
+        except Exception as e:
+            print(f"Error: {e}")
