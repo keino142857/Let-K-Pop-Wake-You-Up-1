@@ -68,10 +68,19 @@
                     pose.onResults((results) => {
                         const canvasElement = document.getElementById("outputCanvas");
                         const canvasCtx = canvasElement.getContext("2d");
-        
+
                         canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
                         canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-        
+
+                        if (results.poseLandmarks) {
+                            for (const landmark of results.poseLandmarks) {
+                                canvasCtx.beginPath();
+                                canvasCtx.arc(landmark.x * canvasElement.width, landmark.y * canvasElement.height, 5, 0, 2 * Math.PI);
+                                canvasCtx.fillStyle = "red";
+                                canvasCtx.fill();
+                            }
+                        }
+
                         const detected = results.poseLandmarks && results.poseLandmarks.length > 0;
                         fetch('/motion_detected', {
                             method: 'POST',
@@ -90,8 +99,8 @@
                         height: 480,
                     });
                     camera.start();
-                })
-                .catch((error) => console.error("無法啟用相機：", error));
+                    })
+                    .catch((error) => console.error("無法啟用相機：", error));
         };        
     </script>
 </body>
