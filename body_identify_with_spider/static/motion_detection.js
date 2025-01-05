@@ -13,7 +13,7 @@ async function motionDetected() {
     videoElement.play().catch((error) => {
       console.error("無法播放鏡頭:", error);
     });
-    videoElement.style.display = "none";
+    videoElement.style.display = "block";
     document.body.appendChild(videoElement);
 
     return new Promise((resolve) => {
@@ -56,9 +56,11 @@ async function motionDetected() {
   }
 }
 
-motionDetected().then((detected) => {
-  if (detected) {
-    console.log("有人在鏡頭前，停止警報！");
-    // fetch("/motion_detected", { method: "POST" });
-  }
-});
+window.onload = function() {
+  motionDetected().then((detected) => {
+    if (detected) {
+      console.log("有人在鏡頭前，停止警報！");
+    }
+  });
+};
+
