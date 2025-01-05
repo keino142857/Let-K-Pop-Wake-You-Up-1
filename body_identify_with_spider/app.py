@@ -6,7 +6,6 @@ import subprocess
 from information import speak_weather_info, speak_book_info, play_countdown
 from weather import fetch_weather
 from book import fetch_book
-import webbrowser
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -52,8 +51,6 @@ def alarm():
         alarm_thread = threading.Thread(target=play_with_vlc)
         alarm_thread.start()
     
-    webbrowser.open('http://192.168.100.79:5000/')
-    
     # 偵測是否有人
     while not motion_detected_flag:
         print("沒有人在鏡頭前，繼續播放警報音！")
@@ -83,6 +80,6 @@ if __name__ == "__main__":
     speak_book_info(fetch_book())
     
     try:
-        app.run(host="0.0.0.0", port=5001, debug=True, use_reloader=False)
+        app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
     except Exception as e:
         print(f"Error: {e}")

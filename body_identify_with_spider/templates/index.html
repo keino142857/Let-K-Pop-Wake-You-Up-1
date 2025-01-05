@@ -35,11 +35,17 @@
             background-color: #e67e22;
         }
     </style>
+<script>
+    // 自動跳轉至 challenge 頁面
+    setTimeout(function() {
+        window.location.href = "/challenge";  // 這會跳轉到你的 Flask 路由處理的 'challenge' 頁面
+    }, 5000);  // 5秒後跳轉
+</script>
 </head>
 <body>
-    <div class="container">
-        <h1>舞蹈挑戰即將開始</h1>
-        <a href="challenge.html"><button class="btn">確定</button></a>
-    </div>
+<div class="container">
+    <h1>舞蹈挑戰即將開始</h1>
+    <button class="btn" onclick="window.location.href='/challenge';">確定</button>
+</div>
 </body>
 </html>
