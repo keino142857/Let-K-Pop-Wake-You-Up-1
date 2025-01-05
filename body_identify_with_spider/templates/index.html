@@ -138,9 +138,28 @@
                 console.error('無法啟用相機：', error);
             }
         }
+        async function handleRedirect() {
+            try {
+                const response = await fetch('/alarm', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.detected) {
+                    // 等待語音播放完成後跳轉
+                    console.log("開始倒數計時...");
+                    setTimeout(() => {
+                        window.location.href = '/challenge';
+                    }, 5000); // 等待語音倒數的時間
+                } else {
+                    console.log("未檢測到人，保持警報狀態");
+                }
+            } catch (error) {
+                console.error("處理重定向時發生錯誤:", error);
+            }
+        }
 
         // 頁面載入時初始化
         window.onload = initPoseDetection;
     </script>
+    <button onclick="handleRedirect()" class="btn">測試倒數跳轉</button>
 </body>
 </html>

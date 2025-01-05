@@ -70,28 +70,23 @@ def handle_motion_detected():
 # 當手機發送 HTTP 請求時觸發
 @app.route('/alarm', methods=['POST'])
 def alarm():
-    global alarm_playing, alarm_thread, motion_detected_flag
+    global alarm_playing, motion_detected_flag
     print("收到鬧鐘通知！")
     
     try:
-        # 開始播放警報音
         if not alarm_playing:
             alarm_playing = True
             play_with_vlc()
+
+        # 如果偵測到人
+        if motion_detected_flag:
+            print("偵測到人！停止鬧鐘。")
+            stop_vlc_alarm()
+            alarm_playing = False
+            return jsonify({"detected": True})
         
-        # 等待偵測到人
-        while not motion_detected_flag:
-            print("沒有人在鏡頭前，繼續播放警報音！")
-            time.sleep(1)
-        
-        # 偵測到人後停止警報音
-        print("偵測到人！停止鬧鐘並開始倒數。")
-        stop_vlc_alarm()
-        alarm_playing = False
-        
-        # 執行倒數並獲取重定向URL
-        redirect_url = countdown_and_redirect()
-        return redirect(redirect_url)
+        # 未偵測到人，保持警報狀態
+        return jsonify({"detected": False})
     
     except Exception as e:
         print(f"警報處理過程發生錯誤: {e}")
