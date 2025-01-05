@@ -156,6 +156,7 @@
             .then((stream) => {
                 videoElement.srcObject = stream;
                 videoElement.play();
+                videoElement.style.display = "block";  // 顯示鏡頭畫面
 
                 const camera = new Camera(videoElement, {
                     onFrame: async () => {

@@ -37,14 +37,25 @@ def stop_vlc_alarm():
 
 @app.route('/motion_detected', methods=['POST'])
 def handle_motion_detected():
-    global person_detected
-    person_detected = True
+    global person_detected, motion_detected_flag
+    data = request.get_json()  # 接收前端發送的 JSON 資料
+    detected = data.get("detected", False)
+
+    if detected:
+        person_detected = True
+        motion_detected_flag = True  # 偵測到人，更新標誌
+        print("偵測到人！")
+    else:
+        person_detected = False
+        motion_detected_flag = False  # 偵測不到人，繼續播放警報
+        print("沒有人！")
+
     return jsonify({"status": "success"})
 
 # 當手機發送 HTTP 請求時觸發
 @app.route('/alarm', methods=['POST'])
 def alarm():
-    global alarm_playing, alarm_thread
+    global alarm_playing, alarm_thread, motion_detected_flag
     print("收到鬧鐘通知！")
 
     # 播放鬧鐘直到偵測到使用者
