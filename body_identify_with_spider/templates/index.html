@@ -144,14 +144,18 @@
                 const data = await response.json();
         
                 if (data.detected) {
-                    // 播放倒數音效
-                    const countdownAudio = new Audio("static/music/countdown.mp3"); // 使用 MP3 音效檔案
-                    countdownAudio.play();
+                    // 使用 Web Speech API 播放倒數計時
+                    const synth = window.speechSynthesis;
+                    const utterance = new SpeechSynthesisUtterance("倒數計時：五，四，三，二，一。");
+                    utterance.rate = 0.8; // 調整語速
+                    utterance.volume = 1.0; // 設定音量
         
-                    countdownAudio.onended = () => {
-                        // 當音效播放結束後跳轉
+                    // 當語音播放結束後跳轉
+                    utterance.onend = () => {
                         window.location.href = '/challenge';
                     };
+        
+                    synth.speak(utterance);
                 } else {
                     console.log("未檢測到人，保持警報狀態");
                 }
@@ -159,6 +163,7 @@
                 console.error("處理重定向時發生錯誤:", error);
             }
         }
+        
         
 
         // 頁面載入時初始化
