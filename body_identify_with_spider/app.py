@@ -3,9 +3,10 @@ import threading
 import time
 import os
 import subprocess
-from information import speak_weather_info, speak_book_info, play_countdown
+from information import speak_weather_info, speak_book_info, speak_news_info, play_countdown
 from weather import fetch_weather
 from book import fetch_book
+from news import fetch_latest_news
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -52,7 +53,7 @@ def alarm():
         alarm_thread.start()
     
     # 偵測是否有人
-    while not motion_detected_flag:
+    while not handle_motion_detected:
         print("沒有人在鏡頭前，繼續播放警報音！")
         time.sleep(1)  # 每秒檢查一次
 
@@ -78,6 +79,7 @@ if __name__ == "__main__":
     # 語音播放
     speak_weather_info(fetch_weather())
     speak_book_info(fetch_book())
+    speak_news_info(fetch_latest_news())
     
     try:
         app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
