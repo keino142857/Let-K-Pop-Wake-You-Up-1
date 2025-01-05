@@ -142,13 +142,16 @@
             try {
                 const response = await fetch('/alarm', { method: 'POST' });
                 const data = await response.json();
-
+        
                 if (data.detected) {
-                    // 等待語音播放完成後跳轉
-                    console.log("開始倒數計時...");
-                    setTimeout(() => {
+                    // 播放倒數音效
+                    const countdownAudio = new Audio("static/music/countdown.mp3"); // 使用 MP3 音效檔案
+                    countdownAudio.play();
+        
+                    countdownAudio.onended = () => {
+                        // 當音效播放結束後跳轉
                         window.location.href = '/challenge';
-                    }, 5000); // 等待語音倒數的時間
+                    };
                 } else {
                     console.log("未檢測到人，保持警報狀態");
                 }
@@ -156,6 +159,7 @@
                 console.error("處理重定向時發生錯誤:", error);
             }
         }
+        
 
         // 頁面載入時初始化
         window.onload = initPoseDetection;
