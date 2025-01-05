@@ -41,20 +41,12 @@ def stop_vlc_alarm():
 def countdown_and_redirect():
     """倒數計時並返回重定向URL"""
     engine = pyttsx3.init()
-    engine.setProperty('rate', 150)
+    engine.setProperty('rate', 80)
     engine.setProperty('volume', 1.0)
     
     # 先說"倒數計時"
-    engine.say("倒數計時")
-    # engine.runAndWait()
-    
-    # 開始倒數
-    for i in range(5, 0, -1):
-        # 說出數字
-        engine.say(str(i))
-        engine.runAndWait()
-        # 等待一秒
-        time.sleep(1)
+    engine.say("倒數計時:五。四。三。二。一。")
+    engine.runAndWait()
     
     return url_for('challenge')
 
@@ -99,9 +91,7 @@ def alarm():
         
         # 執行倒數並獲取重定向URL
         redirect_url = countdown_and_redirect()
-        
-        # 返回重定向響應
-        return redirect(url_for('challenge'))
+        return redirect(redirect_url)
     
     except Exception as e:
         print(f"警報處理過程發生錯誤: {e}")
