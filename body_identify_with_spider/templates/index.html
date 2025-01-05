@@ -66,19 +66,30 @@
                     });
         
                     pose.onResults((results) => {
+                        console.log("Pose 偵測結果:", results.poseLandmarks);
+                        if (!results.poseLandmarks || results.poseLandmarks.length === 0) {
+                            console.log("未偵測到人體姿勢。");
+                        }
                         const canvasElement = document.getElementById("outputCanvas");
                         const canvasCtx = canvasElement.getContext("2d");
+                        canvasCtx.fillStyle = "blue";
+                        canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
+
 
                         canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
                         canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
                         if (results.poseLandmarks) {
                             for (const landmark of results.poseLandmarks) {
+                                const x = landmark.x * canvasElement.width;
+                                const y = landmark.y * canvasElement.height;
                                 canvasCtx.beginPath();
-                                canvasCtx.arc(landmark.x * canvasElement.width, landmark.y * canvasElement.height, 5, 0, 2 * Math.PI);
+                                canvasCtx.arc(x, y, 5, 0, 2 * Math.PI);
                                 canvasCtx.fillStyle = "red";
                                 canvasCtx.fill();
                             }
+                        } else {
+                            console.log("沒有 poseLandmarks 可繪製。");
                         }
 
                         const detected = results.poseLandmarks && results.poseLandmarks.length > 0;
