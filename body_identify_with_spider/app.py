@@ -14,6 +14,7 @@ alarm_playing = False
 alarm_thread = None
 person_detected = False
 motion_detected_flag = False
+vlc_process = None
 
 # vlc_path = "/usr/bin/vlc"  # VLC 安裝的路徑
 vlc_path = r"C:\Program Files\VideoLAN\VLC\vlc.exe"  # 使用正確的 VLC 路徑
@@ -31,8 +32,31 @@ def play_with_vlc():
 
 def stop_vlc_alarm():
     """停止 VLC 播放音效"""
-    # VLC 播放器停止功能可以進一步研究，通常 VLC 沒有簡單的 stop 命令，可能需要控制 VLC 進程
-    print("停止 VLC 播放音效 (這需要進一步控制 VLC 進程)")
+    global vlc_process
+    if vlc_process:
+        vlc_process.terminate()
+        vlc_process = None
+        print("VLC 音效已停止")
+
+def countdown_and_redirect():
+    """倒數計時並返回重定向URL"""
+    engine = pyttsx3.init()
+    engine.setProperty('rate', 150)
+    engine.setProperty('volume', 1.0)
+    
+    # 先說"倒數計時"
+    engine.say("倒數計時")
+    engine.runAndWait()
+    
+    # 開始倒數
+    for i in range(5, 0, -1):
+        # 說出數字
+        engine.say(str(i))
+        engine.runAndWait()
+        # 等待一秒
+        time.sleep(1)
+    
+    return url_for('challenge')
 
 @app.route('/motion_detected', methods=['POST'])
 def handle_motion_detected():
@@ -56,38 +80,32 @@ def handle_motion_detected():
 def alarm():
     global alarm_playing, alarm_thread, motion_detected_flag
     print("收到鬧鐘通知！")
-
-    # 播放鬧鐘直到偵測到使用者
-    if not alarm_playing:
-        alarm_playing = True
-        alarm_thread = threading.Thread(target=play_with_vlc)
-        alarm_thread.start()
-
-    # 偵測是否有人
-    while not motion_detected_flag:  # 等待偵測到人
-        print("沒有人在鏡頭前，繼續播放警報音！")
-        time.sleep(1)  # 每秒檢查一次
-
-    # 偵測到有人後停止鬧鐘並播放倒數 5 秒
-    print("偵測到有人！停止鬧鐘並開始倒數。")
-    alarm_playing = False  # 停止鬧鐘音效
-    if alarm_thread.is_alive():
-        alarm_thread.join()
-
-    # 開始播放倒數語音
-    engine = pyttsx3.init()  # 初始化pyttsx3引擎
-    engine.setProperty('rate', 150)  # 設置語速
-    engine.setProperty('volume', 1)  # 設置音量（範圍從0.0到1.0）
-
-    # 播放倒數語音
-    engine.say("倒數計時")
-    for i in range(5, 0, -1):
-        engine.say(f"{i} 秒")  
-        engine.runAndWait() 
-        time.sleep(1)  # 等待1秒
- 
-    # 跳轉到挑戰頁面
-    return redirect(url_for('challenge'))
+    
+    try:
+        # 開始播放警報音
+        if not alarm_playing:
+            alarm_playing = True
+            play_with_vlc()
+        
+        # 等待偵測到人
+        while not motion_detected_flag:
+            print("沒有人在鏡頭前，繼續播放警報音！")
+            time.sleep(1)
+        
+        # 偵測到人後停止警報音
+        print("偵測到人！停止鬧鐘並開始倒數。")
+        stop_vlc_alarm()
+        alarm_playing = False
+        
+        # 執行倒數並獲取重定向URL
+        redirect_url = countdown_and_redirect()
+        
+        # 返回重定向響應
+        return redirect(redirect_url)
+    
+    except Exception as e:
+        print(f"警報處理過程發生錯誤: {e}")
+        return jsonify({"error": str(e)}), 500
     
 @app.route('/')
 def index():
