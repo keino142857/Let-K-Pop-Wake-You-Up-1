@@ -15,7 +15,8 @@ alarm_thread = None
 person_detected = False
 motion_detected_flag = False
 
-vlc_path = "/usr/bin/vlc"  # VLC 安裝的路徑
+# vlc_path = "/usr/bin/vlc"  # VLC 安裝的路徑
+vlc_path = r"C:\Program Files\VideoLAN\VLC\vlc.exe"  # 使用正確的 VLC 路徑
 
 def play_with_vlc():
     """使用 VLC 播放 .m4a 音效檔案"""
@@ -84,7 +85,7 @@ def alarm():
         engine.say(f"{i} 秒")  
         engine.runAndWait() 
         time.sleep(1)  # 等待1秒
-
+ 
     # 跳轉到挑戰頁面
     return redirect(url_for('challenge'))
     

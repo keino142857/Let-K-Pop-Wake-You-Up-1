@@ -74,9 +74,9 @@
                 if (results.poseLandmarks) {
                     // 繪製骨架
                     drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
-                        {color: '#00FF00', lineWidth: 4});
+                        {color: '#6CC0E4', lineWidth: 4});
                     drawLandmarks(canvasCtx, results.poseLandmarks,
-                        {color: '#FF0000', lineWidth: 2});
+                        {color: '#FFFD98', lineWidth: 2});
                     
                     // 發送偵測結果到伺服器
                     fetch('/motion_detected', {
