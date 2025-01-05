@@ -35,7 +35,7 @@
             background-color: #e67e22;
         }
     </style>
-<script src="LET-K-POP-WAKE-YOU-UP/body_identity_with_spider/motion_detection.js"></script>
+<script src="{{ url_for('static', filename='motion_detection.js') }}"></script>
 <script>
     // 自動跳轉至 challenge 頁面
     setTimeout(function() {
@@ -46,7 +46,7 @@
 <body>
 <div class="container">
     <h1>舞蹈挑戰即將開始</h1>
-    <button class="btn" onclick="window.location.href='/challenge';">確定</button>
+    <!-- <button class="btn" onclick="window.location.href='/challenge';">確定</button> -->
 </div>
 </body>
 </html>

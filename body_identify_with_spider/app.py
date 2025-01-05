@@ -1,8 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify
-import threading
-import time
-import os
-import subprocess
+import threading, time, os, subprocess, pyttsx3 
 from information import speak_weather_info, speak_book_info, speak_news_info, play_countdown
 from weather import fetch_weather
 from book import fetch_book
@@ -19,6 +16,7 @@ person_detected = False
 motion_detected_flag = False
 
 vlc_path = "/usr/bin/vlc"  # VLC 安裝的路徑
+
 def play_with_vlc():
     """使用 VLC 播放 .m4a 音效檔案"""
     alarm_sound_path = os.path.join(BASE_DIR, 'static', 'music', 'alarm.m4a')  # 音效檔案路徑
@@ -60,11 +58,12 @@ def alarm():
 
     # 播放鬧鐘直到偵測到使用者
     if not alarm_playing:
+        alarm_playing = True
         alarm_thread = threading.Thread(target=play_with_vlc)
         alarm_thread.start()
-    
+
     # 偵測是否有人
-    while not handle_motion_detected:
+    while not motion_detected_flag:  # 等待偵測到人
         print("沒有人在鏡頭前，繼續播放警報音！")
         time.sleep(1)  # 每秒檢查一次
 
@@ -74,6 +73,19 @@ def alarm():
     if alarm_thread.is_alive():
         alarm_thread.join()
 
+    # 開始播放倒數語音
+    engine = pyttsx3.init()  # 初始化pyttsx3引擎
+    engine.setProperty('rate', 150)  # 設置語速
+    engine.setProperty('volume', 1)  # 設置音量（範圍從0.0到1.0）
+
+    # 播放倒數語音
+    engine.say("倒數計時")
+    for i in range(5, 0, -1):
+        engine.say(f"{i} 秒")  
+        engine.runAndWait() 
+        time.sleep(1)  # 等待1秒
+
+    # 跳轉到挑戰頁面
     return redirect(url_for('challenge'))
     
 @app.route('/')
@@ -83,7 +95,6 @@ def index():
 
 @app.route('/challenge')
 def challenge():
-   
     return render_template('challenge.html')
 
 if __name__ == "__main__":
