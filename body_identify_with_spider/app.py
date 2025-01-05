@@ -46,7 +46,7 @@ def countdown_and_redirect():
     
     # 先說"倒數計時"
     engine.say("倒數計時")
-    engine.runAndWait()
+    # engine.runAndWait()
     
     # 開始倒數
     for i in range(5, 0, -1):
@@ -101,7 +101,7 @@ def alarm():
         redirect_url = countdown_and_redirect()
         
         # 返回重定向響應
-        return redirect(redirect_url)
+        return redirect(url_for('challenge'))
     
     except Exception as e:
         print(f"警報處理過程發生錯誤: {e}")
