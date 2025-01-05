@@ -146,7 +146,7 @@
             }
         });
 
-        function actionComplete() {
+        /*function actionComplete() {
             actionImage.src = ""; // 清除當前動作的圖示
             backgroundMusic.play(); // 繼續播放背景音樂
             currentPauseIndex++; // 準備檢測下一個動作
@@ -155,7 +155,35 @@
                 console.log("所有動作完成！");
                 return; // 結束檢測流程
             }
+        }*/
+        function actionComplete() {
+            actionImage.src = ""; // 清除當前動作的圖示
+            backgroundMusic.play(); // 繼續播放背景音樂
+            currentPauseIndex++; // 準備檢測下一個動作
+        
+            if (currentPauseIndex >= requiredActions.length) {
+                console.log("所有動作完成！");
+                
+                // 發送終止計時請求給後端
+                fetch('/end_timer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ action_completed: true })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("後端回應:", data);
+                })
+                .catch(error => {
+                    console.error("錯誤:", error);
+                });
+        
+                return; // 結束檢測流程
+            }
         }
+
         
 
         navigator.mediaDevices.getUserMedia({ video: true })
