@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>舞蹈挑戰即將開始</title>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+    <!-- 確保載入正確版本的 MediaPipe -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -36,84 +38,109 @@
         .btn:hover {
             background-color: #e67e22;
         }
+        #outputCanvas {
+            transform: scaleX(-1);
+            max-width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>舞蹈挑戰即將開始</h1>
-        <!--<button class="btn" onclick="startCamera()">開始鏡頭</button> -->
         <video id="inputVideo" autoplay style="display: none;"></video>
         <canvas id="outputCanvas" width="640" height="480"></canvas>
     </div>
-    <script src="{{ url_for('static', filename='motion_detection.js') }}"></script>
+
     <script>
-        window.onload = function() {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then((stream) => {
-                    const videoElement = document.getElementById("inputVideo");
-                    videoElement.srcObject = stream;
-                    videoElement.play();
-                    videoElement.style.display = "none";  // 隱藏原始畫面
-        
-                    const pose = new Pose({
-                        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
-                    });
-        
-                    pose.setOptions({
-                        modelComplexity: 1,
-                        minDetectionConfidence: 0.4,
-                        minTrackingConfidence: 0.4,
-                    });
-        
-                    pose.onResults((results) => {
-                        console.log("Pose 偵測結果:", results.poseLandmarks);
-                        if (!results.poseLandmarks || results.poseLandmarks.length === 0) {
-                            console.log("未偵測到人體姿勢。");
-                        }
-                        const canvasElement = document.getElementById("outputCanvas");
-                        const canvasCtx = canvasElement.getContext("2d");
-                        canvasCtx.fillStyle = "blue";
-                        canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
+        let detectionStarted = false;
 
+        async function initPoseDetection() {
+            const videoElement = document.getElementById('inputVideo');
+            const canvasElement = document.getElementById('outputCanvas');
+            const canvasCtx = canvasElement.getContext('2d');
 
-                        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-                        canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+            function onResults(results) {
+                // 清除畫布
+                canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+                
+                // 繪製攝影機畫面
+                canvasCtx.save();
+                canvasCtx.drawImage(
+                    results.image, 0, 0, canvasElement.width, canvasElement.height
+                );
 
-                        if (results.poseLandmarks) {
-                            for (const landmark of results.poseLandmarks) {
-                                const x = landmark.x * canvasElement.width;
-                                const y = landmark.y * canvasElement.height;
-                                canvasCtx.beginPath();
-                                canvasCtx.arc(x, y, 5, 0, 2 * Math.PI);
-                                canvasCtx.fillStyle = "red";
-                                canvasCtx.fill();
-                            }
-                        } else {
-                            console.log("沒有 poseLandmarks 可繪製。");
-                        }
-
-                        const detected = results.poseLandmarks && results.poseLandmarks.length > 0;
-                        fetch('/motion_detected', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ detected: detected })
-                        });
-                    });
-        
-                    const camera = new Camera(videoElement, {
-                        onFrame: async () => {
-                            await pose.send({ image: videoElement });
+                // 如果偵測到姿勢關鍵點
+                if (results.poseLandmarks) {
+                    // 繪製骨架
+                    drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
+                        {color: '#00FF00', lineWidth: 4});
+                    drawLandmarks(canvasCtx, results.poseLandmarks,
+                        {color: '#FF0000', lineWidth: 2});
+                    
+                    // 發送偵測結果到伺服器
+                    fetch('/motion_detected', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
                         },
-                        width: 640,
-                        height: 480,
+                        body: JSON.stringify({ detected: true })
                     });
-                    camera.start();
-                    })
-                    .catch((error) => console.error("無法啟用相機：", error));
-        };        
+                }
+                
+                canvasCtx.restore();
+            }
+
+            // 初始化 Pose 物件
+            const pose = new Pose({
+                locateFile: (file) => {
+                    return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+                }
+            });
+
+            // 設定 Pose 參數
+            pose.setOptions({
+                modelComplexity: 1,
+                smoothLandmarks: true,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+
+            // 設定結果回調
+            pose.onResults(onResults);
+
+            // 開啟攝影機
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: 640,
+                        height: 480
+                    }
+                });
+                
+                videoElement.srcObject = stream;
+                await videoElement.play();
+
+                // 初始化相機
+                const camera = new Camera(videoElement, {
+                    onFrame: async () => {
+                        if (!detectionStarted) return;
+                        await pose.send({image: videoElement});
+                    },
+                    width: 640,
+                    height: 480
+                });
+
+                detectionStarted = true;
+                camera.start();
+                
+            } catch (error) {
+                console.error('無法啟用相機：', error);
+            }
+        }
+
+        // 頁面載入時初始化
+        window.onload = initPoseDetection;
     </script>
 </body>
 </html>
-
