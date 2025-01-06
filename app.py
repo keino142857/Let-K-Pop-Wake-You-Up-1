@@ -137,7 +137,7 @@ def alarm():
             alarm_playing = False
         
             # 返回顯示按鈕的指令
-            return jsonify({"status": "success", "show_button": True,"stop_alarm": True}})
+            return jsonify({"status": "success", "show_button": True,"stop_alarm": True})
     
         # 偵測不到人則繼續警報
         return jsonify({"status": "success", "show_button": False, "stop_alarm": False})
