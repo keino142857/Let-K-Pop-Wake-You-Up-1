@@ -1,1 +1,7 @@
 .env
+action_recognition.cpython-312.pyc
+book.cpython-312.pyc
+information.cpython-312.pyc
+motion_detection.cpython-312.pyc
+news.cpython-312.pyc
+weather.cpython-312.pyc
