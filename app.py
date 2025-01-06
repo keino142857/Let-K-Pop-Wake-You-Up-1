@@ -57,7 +57,7 @@ def play_with_vlc():
 
     # start playing video
     media_player.play()
-    while alarm_playing and player.is_playing() == 1:
+    while alarm_playing:
         sleep(0.5)
 
     media_player.stop()
