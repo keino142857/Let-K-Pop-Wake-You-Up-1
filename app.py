@@ -167,8 +167,8 @@ def alarmStart():
 @app.route("/stop")
 def stop():
     global alarm_playing, motion_detected_flag,alarm_thread
-    if alarm_thread:
-        alarm_thread = False
+    if alarm_playing:
+        alarm_playing = False
     return "stop"
     
 @app.route('/')
