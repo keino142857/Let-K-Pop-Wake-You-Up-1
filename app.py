@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify
-import threading, time, os, subprocess, pyttsx3 
+import threading, time, os, subprocess 
 from information import speak_weather_info, speak_book_info, speak_news_info, play_countdown
 from weather import fetch_weather
 from book import fetch_book
@@ -70,16 +70,16 @@ def stop_vlc_alarm():
         timer_thread.join()  ## 等待計時器線程結束
         print("計時器已停止")
         
-# def save_time_to_logs(): ##新增進資料庫
-#     """將計時器的時間值儲存到資料庫中的 logs 表"""
-#     global start_time
-#     elapsed_time = int(time.time() - start_time)  # 計算經過的秒數，並轉換為整數
+def save_time_to_logs(): ##新增進資料庫
+    """將計時器的時間值儲存到資料庫中的 logs 表"""
+    global start_time
+    elapsed_time = int(time.time() - start_time)  # 計算經過的秒數，並轉換為整數
 
-#     # 創建新的 Log 實例並儲存
-#     new_log = Log(time=elapsed_time)
-#     db.session.add(new_log)
-#     db.session.commit()  # 提交到資料庫
-#     print(f"時間 {elapsed_time} 秒已儲存到資料庫")
+    # 創建新的 Log 實例並儲存
+    new_log = Log(time=elapsed_time)
+    db.session.add(new_log)
+    db.session.commit()  # 提交到資料庫
+    print(f"時間 {elapsed_time} 秒已儲存到資料庫")
 
 @app.route('/end_timer', methods=['POST'])
 def end_timer():##
