@@ -148,6 +148,13 @@
             if (data.show_button) {
                 document.getElementById('redirectButton').click();
                 document.getElementById('redirectButton').style.display = 'block'; // 顯示按鈕
+                fetch('/stop', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json());
                 alarmAudio.pause(); // 停止鬧鐘音效
                 alarmAudio.currentTime = 0; // 重置音效播放進度
                 
