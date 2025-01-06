@@ -67,18 +67,41 @@
         const requiredActions = ["pose1", "crossArms", "bunnyEars"];
         let currentPauseIndex = 0;
         let detectionStarted = false;
+        let isWaitingForAction = false;
+        let actionDetected = false;
+
+        function showNextAction() {
+            if (currentPauseIndex < imagePaths.length) {
+                actionImage.src = imagePaths[currentPauseIndex];
+                isWaitingForAction = true;
+                actionDetected = false;
+            }
+        }
 
         function actionComplete() {
-            currentPauseIndex++;
-            if (currentPauseIndex < pauseTimes.length) {
-                backgroundMusic.play();
+            if (!actionDetected && isWaitingForAction) {
+                actionDetected = true;
+                isWaitingForAction = false;
+                currentPauseIndex++;
+                
+                if (currentPauseIndex < pauseTimes.length) {
+                    console.log("動作正確，繼續播放音樂");
+                    backgroundMusic.play();
+                } else {
+                    console.log("所有動作完成！");
+                    backgroundMusic.pause();
+                }
             }
         }
 
         backgroundMusic.addEventListener("timeupdate", () => {
-            if (currentPauseIndex < pauseTimes.length && backgroundMusic.currentTime >= pauseTimes[currentPauseIndex]) {
+            if (!actionDetected && 
+                currentPauseIndex < pauseTimes.length && 
+                backgroundMusic.currentTime >= pauseTimes[currentPauseIndex] && 
+                !isWaitingForAction) {
+                console.log(`達到暫停時間: ${pauseTimes[currentPauseIndex]}秒`);
                 backgroundMusic.pause();
-                actionImage.src = imagePaths[currentPauseIndex];
+                showNextAction();
             }
         });
 
