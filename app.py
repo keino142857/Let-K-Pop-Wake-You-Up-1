@@ -116,19 +116,19 @@ def alarm():
     try:
         if not alarm_playing:
             alarm_playing = True
-            play_with_vlc()
+            #play_with_vlc()
 
         # 如果偵測到人
         if motion_detected_flag:
             print("偵測到人！停止鬧鐘，顯示按鈕供跳轉。")
-            stop_vlc_alarm()
+            #stop_vlc_alarm()
             alarm_playing = False
         
             # 返回顯示按鈕的指令
-            return jsonify({"status": "success", "show_button": True})
+            return jsonify({"status": "success", "show_button": True,"stop_alarm": True})
     
         # 偵測不到人則繼續警報
-        return jsonify({"status": "success", "show_button": False})
+        return jsonify({"status": "success", "show_button": False, "stop_alarm": False})
     
     except Exception as e:
         print(f"警報處理過程發生錯誤: {e}")

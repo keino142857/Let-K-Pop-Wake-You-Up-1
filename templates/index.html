@@ -51,9 +51,11 @@
         <video id="inputVideo" autoplay style="display: none;"></video>
         <canvas id="outputCanvas" width="640" height="480"></canvas>
     </div>
+    <audio id="alarmAudio" src="static/music/alarm.m4a" autoplay></audio>
 
     <script>
         let detectionStarted = false;
+        let alarmAudio = document.getElementById('alarmAudio');
 
         async function initPoseDetection() {
             const videoElement = document.getElementById('inputVideo');
@@ -87,13 +89,7 @@
                         body: JSON.stringify({ detected: true })
                     })
                     .then(response => response.json())
-                    .then(data => {
-                        if (data.show_button) {
-                            document.getElementById('redirectButton').style.display = 'block'; // 顯示按鈕
-                        } else {
-                            document.getElementById('redirectButton').style.display = 'none'; // 隱藏按鈕
-                        }
-                    });
+                    .then(handleAlarmResponse); // 處理伺服器回應
                 }       
                 canvasCtx.restore();
             }
@@ -145,6 +141,18 @@
                 console.error('無法啟用相機：', error);
             }
         }
+
+        // 偵測到人時停止鬧鐘音效
+        function handleAlarmResponse(data) {
+            if (data.show_button) {
+                document.getElementById('redirectButton').style.display = 'block'; // 顯示按鈕
+                alarmAudio.pause(); // 停止鬧鐘音效
+                alarmAudio.currentTime = 0; // 重置音效播放進度
+            } else {
+                document.getElementById('redirectButton').style.display = 'none'; // 隱藏按鈕
+            }
+        }
+
         // 頁面載入時初始化
         window.onload = initPoseDetection;
     </script>

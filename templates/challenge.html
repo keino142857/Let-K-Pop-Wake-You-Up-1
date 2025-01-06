@@ -50,7 +50,7 @@
             <img id="actionImage" src="" alt="動作圖示">
         </div>
     </div>
-    <audio id="backgroundMusic" src="static/music/supernova.m4a" loop></audio>
+    <audio id="backgroundMusic" src="static/music/supernova.m4a"></audio>
     <script>
         const videoElement = document.getElementById("inputVideo");
         const canvasElement = document.getElementById("outputCanvas");
@@ -58,11 +58,13 @@
         const actionImage = document.getElementById("actionImage");
         const backgroundMusic = document.getElementById("backgroundMusic");
 
-        const pauseTimes = [4, 7, 20]; // 音樂暫停點
+        const pauseTimes = [4, 7, 20, 20.2]; // 音樂暫停點
         const imagePaths = [
             "static/photo/supernova1.png",
             "static/photo/supernova2.png",
-            "static/photo/supernova3.png"
+            "static/photo/supernova3.png",
+            "static/photo/finish.jpg"
+
         ]; // 動作對應圖片
         const requiredActions = ["supernova1", "supernova2", "supernova3"]; // 動作名稱
         let currentPauseIndex = 0;
