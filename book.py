@@ -9,6 +9,7 @@ def fetch_book():
     response = requests.get(url)
     if response.status_code != 200:
         print(f"無法成功連接目標網址，HTTP 狀態碼：{response.status_code}")
+        return None
     else:
         # 解析 HTML
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -16,6 +17,7 @@ def fetch_book():
         # 找到包含書籍資料的區域
         books = soup.find_all('div', class_='type02_bd-a', limit=3)  # 限制抓取3筆
 
+        book_info = []
         # 提取書名和作者資訊
         for book in books:
             # 提取書名
@@ -30,6 +32,15 @@ def fetch_book():
 
             # 檢查是否找到資料
             if title and author:
-                print(f'書名: {title}, 作者: {author}')
+                book_info.append({'title': title, 'author': author})
             else:
-                print("未能找到書名或作者")
+                book_info.append({'title': '未知', 'author': '未知'})
+
+        return book_info
+
+if __name__ == "__main__":
+    books = fetch_book()
+    if books:
+        print("New books:")
+        for idx, item in enumerate(books, start=1):
+            print(f"{idx}. 書名: {item['title']}, 作者: {item['author']}")

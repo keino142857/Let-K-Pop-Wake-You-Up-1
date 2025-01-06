@@ -1,6 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify
-import threading, time, os, subprocess 
-from information import speak_weather_info, speak_book_info, speak_news_info, play_countdown
+import threading, time, os, subprocess, pyttsx3
+# from information import speak_weather_info, speak_book_info, speak_news_info
 from weather import fetch_weather
 from book import fetch_book
 from news import fetch_latest_news
@@ -24,6 +24,7 @@ class Log(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     time = db.Column(db.Integer, nullable=False)
+    date = db.Column(db.Date, nullable=False)
     
 # 共享變數來控制鬧鐘音效的播放
 alarm_playing = False
@@ -70,16 +71,16 @@ def stop_vlc_alarm():
         timer_thread.join()  ## 等待計時器線程結束
         print("計時器已停止")
         
-def save_time_to_logs(): ##新增進資料庫
+def save_time_to_logs():
     """將計時器的時間值儲存到資料庫中的 logs 表"""
     global start_time
     elapsed_time = int(time.time() - start_time)  # 計算經過的秒數，並轉換為整數
 
-    # 創建新的 Log 實例並儲存
-    new_log = Log(time=elapsed_time)
+    # 創建新的 Log 實例，包含時間和日期
+    new_log = Log(time=elapsed_time, date=datetime.date.today())
     db.session.add(new_log)
     db.session.commit()  # 提交到資料庫
-    print(f"時間 {elapsed_time} 秒已儲存到資料庫")
+    print(f"時間 {elapsed_time} 秒已儲存到資料庫，日期為 {datetime.date.today()}")
 
 @app.route('/end_timer', methods=['POST'])
 def end_timer():##
@@ -90,18 +91,6 @@ def end_timer():##
     stop_vlc_alarm()
 
     return jsonify({"status": "success", "message": "時間已儲存"})
-    
-# def countdown_and_redirect():
-#     """倒數計時並返回重定向URL"""
-#     engine = pyttsx3.init()
-#     engine.setProperty('rate', 80)
-#     engine.setProperty('volume', 1.0)
-    
-#     # 先說"倒數計時"
-#     engine.say("倒數計時:五。四。三。二。一。")
-#     engine.runAndWait()
-    
-#     return url_for('challenge')
 
 @app.route('/motion_detected', methods=['POST'])
 def handle_motion_detected():
@@ -158,17 +147,48 @@ def challenge():
 
 @app.route('/rank')
 def rank():
-    # 從資料庫中查詢 time 欄位
-    logs = Log.query.with_entities(Log.time).all()  # 只查詢 time 欄位
-    readable_logs = [{"time": log.time} for log in logs]  # 直接顯示 int 格式
+    # 從資料庫中查詢 time 和 date 欄位
+    logs = Log.query.with_entities(Log.time, Log.date).all()  # 查詢 time 和 date 欄位
+
+    # 將查詢結果轉為可讀格式
+    readable_logs = [{"time": log.time, "date": log.date.strftime('%Y-%m-%d')} for log in logs]
+
+    # 傳遞資料到模板
     return render_template('rank.html', logs=readable_logs)
 
 
+engine = pyttsx3.init()
+engine.setProperty('rate', 150)  # 設置語音速度
+
+def speak_text(text):
+    engine.say(text)
+    engine.runAndWait()
+
+@app.route('/start_broadcast', methods=['POST'])
+def start_broadcast():
+    try:
+        # 播報天氣資訊
+        weather_info = fetch_weather()
+        speak_text(weather_info)
+
+        # 播報新聞資訊
+        news_info = fetch_latest_news()
+        speak_text(news_info)
+
+        # 播報書籍推薦
+        book_info = fetch_book()
+        speak_text(book_info)
+
+        return jsonify({"status": "success", "message": "播報完成"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 if __name__ == "__main__":
-    # 語音播放
-    speak_weather_info(fetch_weather())
-    speak_book_info(fetch_book())
-    # speak_news_info(fetch_latest_news())
+    # # 語音播放
+    # speak_weather_info(fetch_weather())
+    # speak_book_info(fetch_book())
+    # # speak_news_info(fetch_latest_news())
     
     try:
         app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
