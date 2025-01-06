@@ -216,9 +216,21 @@
             camera.start();
         }
 
+        // 倒數計時功能
+        function startDetectionAfterCountdown() {
+            const synth = window.speechSynthesis;
+            const utterance = new SpeechSynthesisUtterance("倒數計時:五。四。三。二。一。");
+            utterance.rate = 0.8;
+            utterance.volume = 1.0;
+            utterance.onend = function() {
+                backgroundMusic.play();
+                initPoseDetection();
+            };
+            synth.speak(utterance);
+        }
+
         // 開始程式
-        initPoseDetection();
-        backgroundMusic.play();
+        startDetectionAfterCountdown();
     </script>
 </body>
 </html> 
