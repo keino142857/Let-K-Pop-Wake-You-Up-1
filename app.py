@@ -1,14 +1,30 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify
-import threading, time, os, subprocess, pyttsx3 
+import threading, time, os, subprocess 
 from information import speak_weather_info, speak_book_info, speak_news_info, play_countdown
 from weather import fetch_weather
 from book import fetch_book
 from news import fetch_latest_news
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 app = Flask(__name__)
 
+# 設定資料庫配置
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/alarm'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = os.urandom(24)  # 用於加密 session
+
+# 初始化資料庫
+db = SQLAlchemy(app)
+
+class Log(db.Model):
+    __tablename__ = 'log'
+
+    id = db.Column(db.Integer, primary_key=True)
+    time = db.Column(db.Integer, nullable=False)
+    
 # 共享變數來控制鬧鐘音效的播放
 alarm_playing = False
 alarm_thread = None
@@ -54,16 +70,16 @@ def stop_vlc_alarm():
         timer_thread.join()  ## 等待計時器線程結束
         print("計時器已停止")
         
-# def save_time_to_logs(): ##新增進資料庫
-#     """將計時器的時間值儲存到資料庫中的 logs 表"""
-#     global start_time
-#     elapsed_time = int(time.time() - start_time)  # 計算經過的秒數，並轉換為整數
+def save_time_to_logs(): ##新增進資料庫
+    """將計時器的時間值儲存到資料庫中的 logs 表"""
+    global start_time
+    elapsed_time = int(time.time() - start_time)  # 計算經過的秒數，並轉換為整數
 
-#     # 創建新的 Log 實例並儲存
-#     new_log = Log(time=elapsed_time)
-#     db.session.add(new_log)
-#     db.session.commit()  # 提交到資料庫
-#     print(f"時間 {elapsed_time} 秒已儲存到資料庫")
+    # 創建新的 Log 實例並儲存
+    new_log = Log(time=elapsed_time)
+    db.session.add(new_log)
+    db.session.commit()  # 提交到資料庫
+    print(f"時間 {elapsed_time} 秒已儲存到資料庫")
 
 @app.route('/end_timer', methods=['POST'])
 def end_timer():##
@@ -139,6 +155,14 @@ def index():
 @app.route('/challenge')
 def challenge():
     return render_template('challenge.html')
+
+@app.route('/rank')
+def rank():
+    # 從資料庫中查詢 time 欄位
+    logs = Log.query.with_entities(Log.time).all()  # 只查詢 time 欄位
+    readable_logs = [{"time": log.time} for log in logs]  # 直接顯示 int 格式
+    return render_template('rank.html', logs=readable_logs)
+
 
 if __name__ == "__main__":
     # 語音播放
