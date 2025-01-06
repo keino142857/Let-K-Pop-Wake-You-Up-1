@@ -24,6 +24,7 @@ class Log(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     time = db.Column(db.Integer, nullable=False)
+    date = db.Column(db.Date, nullable=False)
     
 # 共享變數來控制鬧鐘音效的播放
 alarm_playing = False
@@ -70,16 +71,16 @@ def stop_vlc_alarm():
         timer_thread.join()  ## 等待計時器線程結束
         print("計時器已停止")
         
-def save_time_to_logs(): ##新增進資料庫
+def save_time_to_logs():
     """將計時器的時間值儲存到資料庫中的 logs 表"""
     global start_time
     elapsed_time = int(time.time() - start_time)  # 計算經過的秒數，並轉換為整數
 
-    # 創建新的 Log 實例並儲存
-    new_log = Log(time=elapsed_time)
+    # 創建新的 Log 實例，包含時間和日期
+    new_log = Log(time=elapsed_time, date=datetime.date.today())
     db.session.add(new_log)
     db.session.commit()  # 提交到資料庫
-    print(f"時間 {elapsed_time} 秒已儲存到資料庫")
+    print(f"時間 {elapsed_time} 秒已儲存到資料庫，日期為 {datetime.date.today()}")
 
 @app.route('/end_timer', methods=['POST'])
 def end_timer():##
@@ -146,10 +147,15 @@ def challenge():
 
 @app.route('/rank')
 def rank():
-    # 從資料庫中查詢 time 欄位
-    logs = Log.query.with_entities(Log.time).all()  # 只查詢 time 欄位
-    readable_logs = [{"time": log.time} for log in logs]  # 直接顯示 int 格式
+    # 從資料庫中查詢 time 和 date 欄位
+    logs = Log.query.with_entities(Log.time, Log.date).all()  # 查詢 time 和 date 欄位
+
+    # 將查詢結果轉為可讀格式
+    readable_logs = [{"time": log.time, "date": log.date.strftime('%Y-%m-%d')} for log in logs]
+
+    # 傳遞資料到模板
     return render_template('rank.html', logs=readable_logs)
+
 
 engine = pyttsx3.init()
 engine.setProperty('rate', 150)  # 設置語音速度
