@@ -4,11 +4,27 @@ from information import speak_weather_info, speak_book_info, speak_news_info, pl
 from weather import fetch_weather
 from book import fetch_book
 from news import fetch_latest_news
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 app = Flask(__name__)
 
+# 設定資料庫配置
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/alarm'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = os.urandom(24)  # 用於加密 session
+
+# 初始化資料庫
+db = SQLAlchemy(app)
+
+class Log(db.Model):
+    __tablename__ = 'log'
+
+    id = db.Column(db.Integer, primary_key=True)
+    time = db.Column(db.Integer, nullable=False)
+    
 # 共享變數來控制鬧鐘音效的播放
 alarm_playing = False
 alarm_thread = None
@@ -139,6 +155,14 @@ def index():
 @app.route('/challenge')
 def challenge():
     return render_template('challenge.html')
+
+@app.route('/rank')
+def rank():
+    # 從資料庫中查詢 time 欄位
+    logs = Log.query.with_entities(Log.time).all()  # 只查詢 time 欄位
+    readable_logs = [{"time": log.time} for log in logs]  # 直接顯示 int 格式
+    return render_template('rank.html', logs=readable_logs)
+
 
 if __name__ == "__main__":
     # 語音播放
