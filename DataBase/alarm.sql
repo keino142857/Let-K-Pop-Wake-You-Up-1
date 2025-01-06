@@ -1,4 +1,5 @@
-CREATE TABLE example_table (
+CREATE TABLE log( 
     id INT AUTO_INCREMENT PRIMARY KEY,
-    time INT NOT NULL
+    time INT NOT NULL,
+    date DATE NOT NULL
 );
