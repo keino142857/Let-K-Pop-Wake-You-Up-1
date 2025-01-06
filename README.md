@@ -109,7 +109,7 @@
 ![image](https://hackmd.io/_uploads/rkLWfpzL1l.png)
 
 - 郵件長這樣，按<font color = #00aeff>成為正式會員。</font>
-![photo_2025-01-01_21-25-40](https://hackmd.io/_uploads/SyDImaGUJl.jpg =300x)
+![photo_2025-01-01_21-25-40](https://hackmd.io/_uploads/SyDImaGUJl.jpg=300x)
 
 - 回到網站登入，然後就可以取得授權碼了。
 ![螢幕擷取畫面 2025-01-01 213112](https://hackmd.io/_uploads/Hy1GEpMLkx.png)
