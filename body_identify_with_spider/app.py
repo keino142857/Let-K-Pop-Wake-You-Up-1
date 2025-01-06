@@ -15,20 +15,33 @@ alarm_thread = None
 person_detected = False
 motion_detected_flag = False
 vlc_process = None
+timer_thread = None  ##新增計時器的線程
+start_time = 0  ## 用來記錄計時開始的時間
 
 # vlc_path = "/usr/bin/vlc"  # VLC 安裝的路徑
 vlc_path = r"C:\Program Files\VideoLAN\VLC\vlc.exe"  # 使用正確的 VLC 路徑
 
 def play_with_vlc():
     """使用 VLC 播放 .m4a 音效檔案"""
+    global start_time, timer_thread  ##新增計時器
     alarm_sound_path = os.path.join(BASE_DIR, 'static', 'music', 'alarm.m4a')  # 音效檔案路徑
 
     try:
         # 使用 subprocess 執行 VLC 播放
         subprocess.Popen([vlc_path, alarm_sound_path, '--intf', 'dummy'])  # 使用 dummy 介面不顯示 VLC 視窗
         print("音效正在播放...")
+        start_time = time.time()  ## 記錄開始時間
+        timer_thread = threading.Thread(target=update_timer) ##
+        timer_thread.start() ##
     except Exception as e:
         print(f"無法啟動 VLC 播放音效: {e}")
+
+def update_timer(): ##新增計時def
+    """計時器更新時間"""
+    while alarm_playing:
+        elapsed_time = time.time() - start_time
+        print(f"播放時間：{elapsed_time:.2f} 秒")
+        time.sleep(1)  # 每秒更新一次
 
 def stop_vlc_alarm():
     """停止 VLC 播放音效"""
@@ -37,7 +50,31 @@ def stop_vlc_alarm():
         vlc_process.terminate()
         vlc_process = None
         print("VLC 音效已停止")
+    if timer_thread:
+        timer_thread.join()  ## 等待計時器線程結束
+        print("計時器已停止")
+        
+def save_time_to_logs(): ##新增進資料庫
+    """將計時器的時間值儲存到資料庫中的 logs 表"""
+    global start_time
+    elapsed_time = int(time.time() - start_time)  # 計算經過的秒數，並轉換為整數
 
+    # 創建新的 Log 實例並儲存
+    new_log = Log(time=elapsed_time)
+    db.session.add(new_log)
+    db.session.commit()  # 提交到資料庫
+    print(f"時間 {elapsed_time} 秒已儲存到資料庫")
+
+@app.route('/end_timer', methods=['POST'])
+def end_timer():##
+    """處理計時器終止並儲存時間到資料庫"""
+    print("收到終止計時的請求")
+
+    # 停止 VLC 播放音效並儲存時間
+    stop_vlc_alarm()
+
+    return jsonify({"status": "success", "message": "時間已儲存"})
+    
 def countdown_and_redirect():
     """倒數計時並返回重定向URL"""
     engine = pyttsx3.init()
