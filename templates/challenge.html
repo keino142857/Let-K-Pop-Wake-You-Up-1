@@ -58,161 +58,167 @@
         const actionImage = document.getElementById("actionImage");
         const backgroundMusic = document.getElementById("backgroundMusic");
 
-        const pauseTimes = [4, 7, 20];
+        const pauseTimes = [4, 7, 20]; // 音樂暫停點
         const imagePaths = [
             "static/photo/supernova1.png",
             "static/photo/supernova2.png",
-            "static/photo/supernova3.png",
-        ];
-        const requiredActions = ["pose1", "crossArms", "bunnyEars"];
+            "static/photo/supernova3.png"
+        ]; // 動作對應圖片
+        const requiredActions = ["supernova1", "supernova2", "supernova3"]; // 動作名稱
         let currentPauseIndex = 0;
-        let detectionStarted = false;
         let isWaitingForAction = false;
-        let actionDetected = false;
-        let lastPauseTime = 0;
+
+        // 動作檢測邏輯
+        function angleBetweenPoints(a, b, c) {
+            const ab = { x: a.x - b.x, y: a.y - b.y };
+            const cb = { x: c.x - b.x, y: c.y - b.y };
+            const dotProduct = ab.x * cb.x + ab.y * cb.y;
+            const magAB = Math.sqrt(ab.x ** 2 + ab.y ** 2);
+            const magCB = Math.sqrt(cb.x ** 2 + cb.y ** 2);
+            if (magAB * magCB === 0) return 0;
+            const angle = Math.acos(dotProduct / (magAB * magCB));
+            return (angle * 180) / Math.PI;
+        }
+
+        function checkSupernova1(poseLandmarks) {
+            // 動作1邏輯：頭部在肩膀上方，手肘低於肩膀，手腕左右分開
+            const head = poseLandmarks[0];
+            const leftShoulder = poseLandmarks[11];
+            const rightShoulder = poseLandmarks[12];
+            const leftElbow = poseLandmarks[13];
+            const rightElbow = poseLandmarks[14];
+            const leftWrist = poseLandmarks[15];
+            const rightWrist = poseLandmarks[16];
+            const leftHip = poseLandmarks[23];
+            const rightHip = poseLandmarks[24];
+
+            return (
+                head.y < leftShoulder.y &&
+                leftElbow.y < leftShoulder.y && rightElbow.y < rightShoulder.y &&
+                leftWrist.x < leftElbow.x && rightWrist.x > rightElbow.x &&
+                leftHip.x < leftShoulder.x && rightHip.x > rightShoulder.x
+            );
+        }
+
+        function checkSupernova2(poseLandmarks) {
+            const head = poseLandmarks[0];
+            const leftElbow = poseLandmarks[13];
+            const rightElbow = poseLandmarks[14];
+            const leftWrist = poseLandmarks[15];
+            const rightWrist = poseLandmarks[16];
+
+            return (
+                leftWrist.x > rightWrist.x && // 左腕在右腕右側，交叉
+                leftWrist.y < head.y + 0.2 && // 左腕靠近胸口（高於頭部條件略放寬）
+                rightWrist.y < head.y + 0.2 &&
+                leftElbow.y > leftWrist.y - 0.1 && // 手肘略高於手腕
+                rightElbow.y > rightWrist.y - 0.1
+            );
+        }
+
+        function checkSupernova3(poseLandmarks) {
+            // 動作3邏輯：雙手在頭上方做出「兔耳」形狀
+            const head = poseLandmarks[0];
+            const leftShoulder = poseLandmarks[11];
+            const rightShoulder = poseLandmarks[12];
+            const leftElbow = poseLandmarks[13];
+            const rightElbow = poseLandmarks[14];
+            const leftWrist = poseLandmarks[15];
+            const rightWrist = poseLandmarks[16];
+
+            return (
+                leftWrist.y < head.y && rightWrist.y < head.y &&
+                leftElbow.y < leftShoulder.y && rightElbow.y < rightShoulder.y &&
+                leftWrist.x < leftElbow.x && rightWrist.x > rightElbow.x
+            );
+        }
+
+        const ACTION_CHECKERS = {
+            supernova1: checkSupernova1,
+            supernova2: checkSupernova2,
+            supernova3: checkSupernova3
+        };
 
         function showNextAction() {
             if (currentPauseIndex < imagePaths.length) {
                 actionImage.src = imagePaths[currentPauseIndex];
                 isWaitingForAction = true;
-                actionDetected = false;
             }
         }
 
         function actionComplete() {
-            if (!actionDetected && isWaitingForAction) {
-                actionDetected = true;
-                isWaitingForAction = false;
-                
-                if (currentPauseIndex < pauseTimes.length) {
-                    lastPauseTime = pauseTimes[currentPauseIndex];
-                    currentPauseIndex++;
-                    console.log("動作正確，繼續播放音樂");
-                    backgroundMusic.play();
-                } else {
-                    console.log("所有動作完成！");
-                    backgroundMusic.pause();
-                }
-            }
+            isWaitingForAction = false;
+            backgroundMusic.play();
+            currentPauseIndex++;
         }
 
         backgroundMusic.addEventListener("timeupdate", () => {
-            updateDebug();
-            
             const currentTime = backgroundMusic.currentTime;
-            if (!actionDetected && 
-                currentPauseIndex < pauseTimes.length && 
-                currentTime >= pauseTimes[currentPauseIndex] && 
-                !isWaitingForAction &&
-                currentTime > lastPauseTime) {
-                    
+
+            if (currentPauseIndex < pauseTimes.length &&
+                currentTime >= pauseTimes[currentPauseIndex] &&
+                !isWaitingForAction) {
+                
                 console.log(`暫停於 ${currentTime} 秒`);
                 backgroundMusic.pause();
                 showNextAction();
             }
         });
 
-        function startDetectionAfterCountdown() {
-            const synth = window.speechSynthesis;
-            const utterance = new SpeechSynthesisUtterance("倒數計時:五。四。三。二。一。");
-            utterance.rate = 0.8;
-            utterance.volume = 1.0;
-            utterance.onend = function() {
-                backgroundMusic.play();
-                initPoseDetection();
-            };
-            synth.speak(utterance);
-        }
-
         async function initPoseDetection() {
-            try {
-                const pose = new Pose({
-                    locateFile: (file) => {
-                        return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+            const pose = new Pose({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+            });
+
+            pose.setOptions({
+                modelComplexity: 1,
+                smoothLandmarks: true,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+
+            pose.onResults((results) => {
+                canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+                canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+                if (results.poseLandmarks) {
+                    drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {
+                        color: '#6CC0E4',
+                        lineWidth: 4
+                    });
+                    drawLandmarks(canvasCtx, results.poseLandmarks, {
+                        color: '#FFFD98',
+                        lineWidth: 2,
+                        radius: 4
+                    });
+                }
+                if (results.poseLandmarks && isWaitingForAction) {
+                    const currentAction = requiredActions[currentPauseIndex];
+                    if (currentAction in ACTION_CHECKERS &&
+                        ACTION_CHECKERS[currentAction](results.poseLandmarks)) {
+                        console.log(`動作 ${currentAction} 完成`);
+                        actionComplete();
                     }
-                });
+                }
+            });
 
-                pose.setOptions({
-                    modelComplexity: 1,
-                    smoothLandmarks: true,
-                    minDetectionConfidence: 0.5,
-                    minTrackingConfidence: 0.5
-                });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            videoElement.srcObject = stream;
+            videoElement.play();
 
-                pose.onResults((results) => {
-                    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-                    canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-
-                    if (results.poseLandmarks && isWaitingForAction) {
-                        // 使用 MediaPipe Drawing Utils 繪製骨架
-                        drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
-                            {color: '#6CC0E4', lineWidth: 4});
-                        drawLandmarks(canvasCtx, results.poseLandmarks,
-                            {color: '#FFFD98', lineWidth: 2});
-
-                        const landmarks = results.poseLandmarks;
-                        const head = landmarks[0];
-                        const leftShoulder = landmarks[11];
-                        const rightShoulder = landmarks[12];
-                        const leftElbow = landmarks[13];
-                        const rightElbow = landmarks[14];
-                        const leftWrist = landmarks[15];
-                        const rightWrist = landmarks[16];
-                        const leftHip = landmarks[23];
-                        const rightHip = landmarks[24];
-
-                        // 檢查動作
-                        const currentAction = requiredActions[currentPauseIndex];
-                        if (currentAction === "pose1" &&
-                            head.y < leftShoulder.y &&
-                            leftElbow.y < leftShoulder.y && rightElbow.y < rightShoulder.y &&
-                            leftWrist.x < leftElbow.x && rightWrist.x > rightElbow.x &&
-                            leftHip.x < leftShoulder.x && rightHip.x > rightShoulder.x
-                        ) {
-                            actionComplete();
-                        } else if (currentAction === "crossArms" &&
-                            leftWrist.x > rightWrist.x &&
-                            leftWrist.y < head.y &&
-                            rightWrist.y < head.y &&
-                            leftElbow.y > leftWrist.y &&
-                            rightElbow.y > rightWrist.y
-                        ) {
-                            actionComplete();
-                        } else if (currentAction === "bunnyEars" &&
-                            leftWrist.y < head.y && rightWrist.y < head.y &&
-                            leftElbow.y < leftShoulder.y && rightElbow.y < rightShoulder.y &&
-                            leftWrist.x < leftElbow.x && rightWrist.x > rightElbow.x
-                        ) {
-                            actionComplete();
-                        }
-                    }
-                });
-
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: 640, height: 480 }
-                });
-                
-                videoElement.srcObject = stream;
-                await videoElement.play();
-
-                const camera = new Camera(videoElement, {
-                    onFrame: async () => {
-                        await pose.send({image: videoElement});
-                    },
-                    width: 640,
-                    height: 480
-                });
-
-                camera.start();
-                detectionStarted = true;
-
-            } catch (error) {
-                console.error('初始化失敗：', error);
-            }
+            const camera = new Camera(videoElement, {
+                onFrame: async () => {
+                    await pose.send({ image: videoElement });
+                },
+                width: 640,
+                height: 480
+            });
+            camera.start();
         }
 
         // 開始程式
-        startDetectionAfterCountdown();
+        initPoseDetection();
+        backgroundMusic.play();
     </script>
 </body>
-</html>
+</html> 
