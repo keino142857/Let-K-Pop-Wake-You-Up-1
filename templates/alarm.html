@@ -192,7 +192,6 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ message: 'Alarm stopped' }),
             })
             .then(response => response.json())
             .then(data => console.log('API response:', data))
