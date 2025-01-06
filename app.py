@@ -12,7 +12,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
 
 # 設定資料庫配置
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/alarm'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://alarm:@localhost/alarm'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.urandom(24)  # 用於加密 session
 
