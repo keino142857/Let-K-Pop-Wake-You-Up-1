@@ -1,6 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify
-import threading, time, os, subprocess 
-from information import speak_weather_info, speak_book_info, speak_news_info, play_countdown
+import threading, time, os, subprocess, pyttsx3
+# from information import speak_weather_info, speak_book_info, speak_news_info
 from weather import fetch_weather
 from book import fetch_book
 from news import fetch_latest_news
@@ -90,18 +90,6 @@ def end_timer():##
     stop_vlc_alarm()
 
     return jsonify({"status": "success", "message": "時間已儲存"})
-    
-# def countdown_and_redirect():
-#     """倒數計時並返回重定向URL"""
-#     engine = pyttsx3.init()
-#     engine.setProperty('rate', 80)
-#     engine.setProperty('volume', 1.0)
-    
-#     # 先說"倒數計時"
-#     engine.say("倒數計時:五。四。三。二。一。")
-#     engine.runAndWait()
-    
-#     return url_for('challenge')
 
 @app.route('/motion_detected', methods=['POST'])
 def handle_motion_detected():
@@ -163,12 +151,38 @@ def rank():
     readable_logs = [{"time": log.time} for log in logs]  # 直接顯示 int 格式
     return render_template('rank.html', logs=readable_logs)
 
+engine = pyttsx3.init()
+engine.setProperty('rate', 150)  # 設置語音速度
+
+def speak_text(text):
+    engine.say(text)
+    engine.runAndWait()
+
+@app.route('/start_broadcast', methods=['POST'])
+def start_broadcast():
+    try:
+        # 播報天氣資訊
+        weather_info = fetch_weather()
+        speak_text(weather_info)
+
+        # 播報新聞資訊
+        news_info = fetch_latest_news()
+        speak_text(news_info)
+
+        # 播報書籍推薦
+        book_info = fetch_book()
+        speak_text(book_info)
+
+        return jsonify({"status": "success", "message": "播報完成"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 if __name__ == "__main__":
-    # 語音播放
-    speak_weather_info(fetch_weather())
-    speak_book_info(fetch_book())
-    # speak_news_info(fetch_latest_news())
+    # # 語音播放
+    # speak_weather_info(fetch_weather())
+    # speak_book_info(fetch_book())
+    # # speak_news_info(fetch_latest_news())
     
     try:
         app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)

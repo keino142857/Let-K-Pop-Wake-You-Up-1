@@ -150,7 +150,53 @@
             isWaitingForAction = false;
             backgroundMusic.play();
             currentPauseIndex++;
+
+            if (currentPauseIndex === requiredActions.length) {
+                console.log("所有動作已完成，開始請求播報資訊");
+
+                backgroundMusic.pause();
+                backgroundMusic.currentTime = 0;
+
+                setTimeout(() => {  // 延遲以確保音訊資源釋放
+                    fetch("/start_broadcast", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            message: "start_broadcast"
+                        })
+                    }).then(response => response.json())
+                    .then(data => {
+                        console.log("播報完成", data);
+                    }).catch(error => {
+                        console.error("請求失敗", error);
+                    });
+                }, 500);  // 延遲 500ms
+
+                // 動作完成後顯示按鈕
+                const button = document.createElement("button");
+                button.innerText = "前往排行榜";
+                button.style.padding = "10px 20px";
+                button.style.fontSize = "18px";
+                button.style.backgroundColor = "#4CAF50";
+                button.style.color = "white";
+                button.style.border = "none";
+                button.style.borderRadius = "5px";
+                button.style.cursor = "pointer";
+                button.style.marginTop = "20px";
+                
+                // 監聽按鈕點擊事件
+                button.addEventListener("click", () => {
+                    window.location.href = '/rank';  
+                });
+
+                // 顯示按鈕
+                document.body.appendChild(button);
+            }
         }
+
+
 
         backgroundMusic.addEventListener("timeupdate", () => {
             const currentTime = backgroundMusic.currentTime;
