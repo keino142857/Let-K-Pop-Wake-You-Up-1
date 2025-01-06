@@ -54,16 +54,16 @@ def stop_vlc_alarm():
         timer_thread.join()  ## 等待計時器線程結束
         print("計時器已停止")
         
-def save_time_to_logs(): ##新增進資料庫
-    """將計時器的時間值儲存到資料庫中的 logs 表"""
-    global start_time
-    elapsed_time = int(time.time() - start_time)  # 計算經過的秒數，並轉換為整數
+# def save_time_to_logs(): ##新增進資料庫
+#     """將計時器的時間值儲存到資料庫中的 logs 表"""
+#     global start_time
+#     elapsed_time = int(time.time() - start_time)  # 計算經過的秒數，並轉換為整數
 
-    # 創建新的 Log 實例並儲存
-    new_log = Log(time=elapsed_time)
-    db.session.add(new_log)
-    db.session.commit()  # 提交到資料庫
-    print(f"時間 {elapsed_time} 秒已儲存到資料庫")
+#     # 創建新的 Log 實例並儲存
+#     new_log = Log(time=elapsed_time)
+#     db.session.add(new_log)
+#     db.session.commit()  # 提交到資料庫
+#     print(f"時間 {elapsed_time} 秒已儲存到資料庫")
 
 @app.route('/end_timer', methods=['POST'])
 def end_timer():##
@@ -75,17 +75,17 @@ def end_timer():##
 
     return jsonify({"status": "success", "message": "時間已儲存"})
     
-def countdown_and_redirect():
-    """倒數計時並返回重定向URL"""
-    engine = pyttsx3.init()
-    engine.setProperty('rate', 80)
-    engine.setProperty('volume', 1.0)
+# def countdown_and_redirect():
+#     """倒數計時並返回重定向URL"""
+#     engine = pyttsx3.init()
+#     engine.setProperty('rate', 80)
+#     engine.setProperty('volume', 1.0)
     
-    # 先說"倒數計時"
-    engine.say("倒數計時:五。四。三。二。一。")
-    engine.runAndWait()
+#     # 先說"倒數計時"
+#     engine.say("倒數計時:五。四。三。二。一。")
+#     engine.runAndWait()
     
-    return url_for('challenge')
+#     return url_for('challenge')
 
 @app.route('/motion_detected', methods=['POST'])
 def handle_motion_detected():
@@ -97,12 +97,12 @@ def handle_motion_detected():
         person_detected = True
         motion_detected_flag = True  # 偵測到人，更新標誌
         print("偵測到人！")
+        return jsonify({"status": "success", "show_button": True})
     else:
         person_detected = False
         motion_detected_flag = False  # 偵測不到人，繼續播放警報
         print("沒有人！")
-
-    return jsonify({"status": "success"})
+        return jsonify({"status": "success", "show_button": False})
 
 # 當手機發送 HTTP 請求時觸發
 @app.route('/alarm', methods=['POST'])
@@ -116,16 +116,20 @@ def alarm():
 
         # 如果偵測到人
         if motion_detected_flag:
-            print("偵測到人！停止鬧鐘。")
+            print("偵測到人！停止鬧鐘，顯示按鈕供跳轉。")
             stop_vlc_alarm()
             alarm_playing = False
         
-            response = countdown_and_redirect()
-            return response 
+            # 返回顯示按鈕的指令
+            return jsonify({"status": "success", "show_button": True})
+    
+        # 偵測不到人則繼續警報
+        return jsonify({"status": "success", "show_button": False})
     
     except Exception as e:
         print(f"警報處理過程發生錯誤: {e}")
         return jsonify({"error": str(e)}), 500
+
     
 @app.route('/')
 def index():
@@ -140,7 +144,7 @@ if __name__ == "__main__":
     # 語音播放
     speak_weather_info(fetch_weather())
     speak_book_info(fetch_book())
-    speak_news_info(fetch_latest_news())
+    # speak_news_info(fetch_latest_news())
     
     try:
         app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)

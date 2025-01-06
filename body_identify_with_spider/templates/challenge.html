@@ -46,7 +46,7 @@
             <img id="actionImage" src="" alt="動作圖示">
         </div>
     </div>
-    <audio id="backgroundMusic" src="static/music/supernova.m4a" autoplay loop></audio>
+    <audio id="backgroundMusic" src="static/music/supernova.m4a" loop></audio>
     <script>
         const videoElement = document.getElementById("inputVideo");
         const canvasElement = document.getElementById("outputCanvas");
@@ -71,120 +71,95 @@
             }
         });
 
-        const pose = new Pose({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
-        });
-
-        pose.setOptions({
-            modelComplexity: 1,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5,
-        });
-
-        pose.onResults((results) => {
-            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-
-            if (results.poseLandmarks) {
-                const landmarks = results.poseLandmarks;
-                const head = landmarks[0];
-                const leftShoulder = landmarks[11];
-                const rightShoulder = landmarks[12];
-                const leftElbow = landmarks[13];
-                const rightElbow = landmarks[14];
-                const leftWrist = landmarks[15];
-                const rightWrist = landmarks[16];
-                const leftHip = landmarks[23];
-                const rightHip = landmarks[24];
-
-                const pointsToDraw = [head, leftShoulder, rightShoulder, leftElbow, rightElbow, leftWrist, rightWrist, leftHip, rightHip];
-                pointsToDraw.forEach((point) => {
-                    canvasCtx.beginPath();
-                    canvasCtx.arc(point.x * canvasElement.width, point.y * canvasElement.height, 5, 0, 2 * Math.PI);
-                    canvasCtx.fillStyle = "red";
-                    canvasCtx.fill();
-                });
-
-                canvasCtx.beginPath();
-                canvasCtx.moveTo(leftShoulder.x * canvasElement.width, leftShoulder.y * canvasElement.height);
-                canvasCtx.lineTo(leftElbow.x * canvasElement.width, leftElbow.y * canvasElement.height);
-                canvasCtx.lineTo(leftWrist.x * canvasElement.width, leftWrist.y * canvasElement.height);
-
-                canvasCtx.moveTo(rightShoulder.x * canvasElement.width, rightShoulder.y * canvasElement.height);
-                canvasCtx.lineTo(rightElbow.x * canvasElement.width, rightElbow.y * canvasElement.height);
-                canvasCtx.lineTo(rightWrist.x * canvasElement.width, rightWrist.y * canvasElement.height);
-
-                canvasCtx.strokeStyle = "blue";
-                canvasCtx.lineWidth = 2;
-                canvasCtx.stroke();
-
-                // 偵測指定動作
-                const currentAction = requiredActions[currentPauseIndex];
-
-                if (currentAction === "pose1" && 
-                    head.y < leftShoulder.y &&
-                    leftElbow.y < leftShoulder.y && rightElbow.y < rightShoulder.y &&
-                    leftWrist.x < leftElbow.x && rightWrist.x > rightElbow.x &&
-                    leftHip.x < leftShoulder.x && rightHip.x > rightShoulder.x
-                ) {
-                    actionComplete();
-                } else if (currentAction === "crossArms" && 
-                    leftWrist.x > rightWrist.x &&
-                    leftWrist.y < head.y &&
-                    rightWrist.y < head.y &&
-                    leftElbow.y > leftWrist.y &&
-                    rightElbow.y > rightWrist.y
-                ) {
-                    actionComplete();
-                } else if (currentAction === "bunnyEars" && 
-                    leftWrist.y < head.y && rightWrist.y < head.y &&
-                    leftElbow.y < leftShoulder.y && rightElbow.y < rightShoulder.y &&
-                    leftWrist.x < leftElbow.x && rightWrist.x > rightElbow.x
-                ) {
-                    actionComplete();
-                }
-            }
-        });
-
-        /*function actionComplete() {
-            actionImage.src = ""; // 清除當前動作的圖示
-            backgroundMusic.play(); // 繼續播放背景音樂
-            currentPauseIndex++; // 準備檢測下一個動作
-        
-            if (currentPauseIndex >= requiredActions.length) {
-                console.log("所有動作完成！");
-                return; // 結束檢測流程
-            }
-        }*/
-        function actionComplete() {
-            actionImage.src = ""; // 清除當前動作的圖示
-            backgroundMusic.play(); // 繼續播放背景音樂
-            currentPauseIndex++; // 準備檢測下一個動作
-        
-            if (currentPauseIndex >= requiredActions.length) {
-                console.log("所有動作完成！");
-                
-                // 發送終止計時請求給後端
-                fetch('/end_timer', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ action_completed: true })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log("後端回應:", data);
-                })
-                .catch(error => {
-                    console.error("錯誤:", error);
-                });
-        
-                return; // 結束檢測流程
-            }
+        function startDetectionAfterCountdown() {
+            const synth = window.speechSynthesis; 
+            const utterance = new SpeechSynthesisUtterance("倒數計時:五。四。三。二。一。"); 
+            utterance.rate = 0.8; // 調整語速 
+            utterance.volume = 1.0; // 調整音量 
+            utterance.onend = function() {
+                // 倒數計時語音播放完成後，開始播放音樂
+                backgroundMusic.play();
+                // 開始動作偵測
+                startPoseDetection();
+            };
+            synth.speak(utterance); 
         }
 
-        
+        function startPoseDetection() {
+            const pose = new Pose({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
+            });
+
+            pose.setOptions({
+                modelComplexity: 1,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5,
+            });
+
+            pose.onResults((results) => {
+                canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+                canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+                if (results.poseLandmarks) {
+                    const landmarks = results.poseLandmarks;
+                    const head = landmarks[0];
+                    const leftShoulder = landmarks[11];
+                    const rightShoulder = landmarks[12];
+                    const leftElbow = landmarks[13];
+                    const rightElbow = landmarks[14];
+                    const leftWrist = landmarks[15];
+                    const rightWrist = landmarks[16];
+                    const leftHip = landmarks[23];
+                    const rightHip = landmarks[24];
+
+                    const pointsToDraw = [head, leftShoulder, rightShoulder, leftElbow, rightElbow, leftWrist, rightWrist, leftHip, rightHip];
+                    pointsToDraw.forEach((point) => {
+                        canvasCtx.beginPath();
+                        canvasCtx.arc(point.x * canvasElement.width, point.y * canvasElement.height, 5, 0, 2 * Math.PI);
+                        canvasCtx.fillStyle = "red";
+                        canvasCtx.fill();
+                    });
+
+                    canvasCtx.beginPath();
+                    canvasCtx.moveTo(leftShoulder.x * canvasElement.width, leftShoulder.y * canvasElement.height);
+                    canvasCtx.lineTo(leftElbow.x * canvasElement.width, leftElbow.y * canvasElement.height);
+                    canvasCtx.lineTo(leftWrist.x * canvasElement.width, leftWrist.y * canvasElement.height);
+
+                    canvasCtx.moveTo(rightShoulder.x * canvasElement.width, rightShoulder.y * canvasElement.height);
+                    canvasCtx.lineTo(rightElbow.x * canvasElement.width, rightElbow.y * canvasElement.height);
+                    canvasCtx.lineTo(rightWrist.x * canvasElement.width, rightWrist.y * canvasElement.height);
+
+                    canvasCtx.strokeStyle = "blue";
+                    canvasCtx.lineWidth = 2;
+                    canvasCtx.stroke();
+
+                    const currentAction = requiredActions[currentPauseIndex];
+
+                    if (currentAction === "pose1" &&
+                        head.y < leftShoulder.y &&
+                        leftElbow.y < leftShoulder.y && rightElbow.y < rightShoulder.y &&
+                        leftWrist.x < leftElbow.x && rightWrist.x > rightElbow.x &&
+                        leftHip.x < leftShoulder.x && rightHip.x > rightShoulder.x
+                    ) {
+                        actionComplete();
+                    } else if (currentAction === "crossArms" &&
+                        leftWrist.x > rightWrist.x &&
+                        leftWrist.y < head.y &&
+                        rightWrist.y < head.y &&
+                        leftElbow.y > leftWrist.y &&
+                        rightElbow.y > rightWrist.y
+                    ) {
+                        actionComplete();
+                    } else if (currentAction === "bunnyEars" &&
+                        leftWrist.y < head.y && rightWrist.y < head.y &&
+                        leftElbow.y < leftShoulder.y && rightElbow.y < rightShoulder.y &&
+                        leftWrist.x < leftElbow.x && rightWrist.x > rightElbow.x
+                    ) {
+                        actionComplete();
+                    }
+                }
+            });
+        }    
 
         navigator.mediaDevices.getUserMedia({ video: true })
             .then((stream) => {
@@ -201,6 +176,7 @@
                 camera.start();
             })
             .catch((error) => console.error("無法啟用相機：", error));
+        startDetectionAfterCountdown();
     </script>
 </body>
 </html>

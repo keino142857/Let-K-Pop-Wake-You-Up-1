@@ -85,9 +85,16 @@
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({ detected: true })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.show_button) {
+                            document.getElementById('redirectButton').style.display = 'block'; // 顯示按鈕
+                        } else {
+                            document.getElementById('redirectButton').style.display = 'none'; // 隱藏按鈕
+                        }
                     });
-                }
-                
+                }       
                 canvasCtx.restore();
             }
 
@@ -138,20 +145,8 @@
                 console.error('無法啟用相機：', error);
             }
         }
-        async function handleRedirect() {
-            const response = await fetch('/alarm', { method: 'POST' });
-            const data = await response.json();
-
-            if (data.redirect) {
-                // 等待語音播放完成後跳轉
-                setTimeout(() => {
-                    window.location.href = data.redirect;
-                }, 5000);  // 等待語音倒數的時間
-            }
-        }
-        // 頁面載入時初始化
         window.onload = initPoseDetection;
     </script>
-    <!-- <button onclick="handleRedirect()" class="btn">測試倒數跳轉</button> -->
+    <button id="redirectButton" class="btn" style="display: none;" onclick="window.location.href = '/challenge'">前往挑戰頁面</button>
 </body>
 </html>
