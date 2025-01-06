@@ -139,36 +139,19 @@
             }
         }
         async function handleRedirect() {
-            try {
-                const response = await fetch('/alarm', { method: 'POST' });
-                const data = await response.json();
-        
-                if (data.detected) {
-                    // 使用 Web Speech API 播放倒數計時
-                    const synth = window.speechSynthesis;
-                    const utterance = new SpeechSynthesisUtterance("倒數計時：五，四，三，二，一。");
-                    utterance.rate = 0.8; // 調整語速
-                    utterance.volume = 1.0; // 設定音量
-        
-                    // 當語音播放結束後跳轉
-                    utterance.onend = () => {
-                        window.location.href = '/challenge';
-                    };
-        
-                    synth.speak(utterance);
-                } else {
-                    console.log("未檢測到人，保持警報狀態");
-                }
-            } catch (error) {
-                console.error("處理重定向時發生錯誤:", error);
+            const response = await fetch('/alarm', { method: 'POST' });
+            const data = await response.json();
+
+            if (data.redirect) {
+                // 等待語音播放完成後跳轉
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 5000);  // 等待語音倒數的時間
             }
         }
-        
-        
-
         // 頁面載入時初始化
         window.onload = initPoseDetection;
     </script>
-    <button onclick="handleRedirect()" class="btn">測試倒數跳轉</button>
+    <!-- <button onclick="handleRedirect()" class="btn">測試倒數跳轉</button> -->
 </body>
 </html>

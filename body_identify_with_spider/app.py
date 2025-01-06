@@ -72,7 +72,6 @@ def handle_motion_detected():
 def alarm():
     global alarm_playing, motion_detected_flag
     print("收到鬧鐘通知！")
-    
     try:
         if not alarm_playing:
             alarm_playing = True
@@ -83,10 +82,9 @@ def alarm():
             print("偵測到人！停止鬧鐘。")
             stop_vlc_alarm()
             alarm_playing = False
-            return jsonify({"detected": True})
         
-        # 未偵測到人，保持警報狀態
-        return jsonify({"detected": False})
+            response = countdown_and_redirect()
+            return response 
     
     except Exception as e:
         print(f"警報處理過程發生錯誤: {e}")
