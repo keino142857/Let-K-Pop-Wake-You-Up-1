@@ -67,18 +67,48 @@
         const requiredActions = ["pose1", "crossArms", "bunnyEars"];
         let currentPauseIndex = 0;
         let detectionStarted = false;
+        let isWaitingForAction = false;
+        let actionDetected = false;
+        let lastPauseTime = 0;
+
+        function showNextAction() {
+            if (currentPauseIndex < imagePaths.length) {
+                actionImage.src = imagePaths[currentPauseIndex];
+                isWaitingForAction = true;
+                actionDetected = false;
+            }
+        }
 
         function actionComplete() {
-            currentPauseIndex++;
-            if (currentPauseIndex < pauseTimes.length) {
-                backgroundMusic.play();
+            if (!actionDetected && isWaitingForAction) {
+                actionDetected = true;
+                isWaitingForAction = false;
+                
+                if (currentPauseIndex < pauseTimes.length) {
+                    lastPauseTime = pauseTimes[currentPauseIndex];
+                    currentPauseIndex++;
+                    console.log("動作正確，繼續播放音樂");
+                    backgroundMusic.play();
+                } else {
+                    console.log("所有動作完成！");
+                    backgroundMusic.pause();
+                }
             }
         }
 
         backgroundMusic.addEventListener("timeupdate", () => {
-            if (currentPauseIndex < pauseTimes.length && backgroundMusic.currentTime >= pauseTimes[currentPauseIndex]) {
+            updateDebug();
+            
+            const currentTime = backgroundMusic.currentTime;
+            if (!actionDetected && 
+                currentPauseIndex < pauseTimes.length && 
+                currentTime >= pauseTimes[currentPauseIndex] && 
+                !isWaitingForAction &&
+                currentTime > lastPauseTime) {
+                    
+                console.log(`暫停於 ${currentTime} 秒`);
                 backgroundMusic.pause();
-                actionImage.src = imagePaths[currentPauseIndex];
+                showNextAction();
             }
         });
 
@@ -113,7 +143,7 @@
                     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
                     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
-                    if (results.poseLandmarks) {
+                    if (results.poseLandmarks && isWaitingForAction) {
                         // 使用 MediaPipe Drawing Utils 繪製骨架
                         drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
                             {color: '#6CC0E4', lineWidth: 4});
