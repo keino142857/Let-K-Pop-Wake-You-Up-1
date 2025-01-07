@@ -146,7 +146,7 @@
         // 偵測到人時停止鬧鐘音效
         function handleAlarmResponse(data) {
             if (data.show_button) {
-                document.getElementById('redirectButton').click();
+                // document.getElementById('redirectButton').click();
                 document.getElementById('redirectButton').style.display = 'block'; // 顯示按鈕
                 fetch('/stop', {
                     method: 'GET',
