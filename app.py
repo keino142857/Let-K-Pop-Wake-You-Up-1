@@ -200,9 +200,9 @@ def rank():
 engine = pyttsx3.init()
 engine.setProperty('rate', 150)  # 設置語音速度
 voices = engine.getProperty('voices')
-engine.setProperty('voice', "zh")
 
 def speak_text(text):
+    engine.setProperty('voice', "zh")
     engine.say(text)
     engine.runAndWait()
 
