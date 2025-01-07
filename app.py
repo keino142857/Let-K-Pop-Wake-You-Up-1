@@ -203,6 +203,8 @@ voices = engine.getProperty('voices')
 
 def speak_text(text):
     engine.setProperty('voice', "zh")
+    for voice in engine.getProperty("voices"):
+        print(voice)
     engine.say(text)
     engine.runAndWait()
 
