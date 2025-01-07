@@ -26,13 +26,13 @@
 - `threading`：實現多線程處理，用於同時運行語音播報和其他後端任務。
 - `time`：延遲操作或測量執行時間。
 - `vlc`：控制 VLC 媒體播放器。
-<!-- Which libraries do you use while you implement the project -->
+
 
 ## Implementation Process
 
 原本打算使用 Python 架後端，所以用 RaspBerry Pi 3 下載 MediaPipe、OpenCV、TensorFlow，但因為 Pi 3 的記憶體不夠，所以改成 RaspBerry Pi 4，但因為 RaspBerry Pi 4 的版本不相容，最後只好用 JavaScript 寫後端。
 
-<!-- What kind of problems you encounter, and how did you resolve the issue? -->
+
 
 ## Knowledge from Lecture
 
@@ -42,7 +42,6 @@
 - JavaScript
 - Python
 
-<!-- What kind of knowledge did you use on this project? -->
 
 ## Installation
 
@@ -60,7 +59,10 @@
     - `git cline https://github.com/NCNU-OpenSource/Let-K-Pop-Wake-You-Up.git`
 
 - 因為天氣爬蟲需要會員的私人金鑰才能使用，請先參考以下步驟設定
-:::spoiler 天氣爬蟲的金鑰設定
+
+<details>
+<summary>天氣爬蟲的金鑰設定</summary>
+
 天氣的爬蟲參考了[中央氣象局 Open API 取得當地的天氣狀況](https://gist.github.com/louis70109/d165be10be06d71708804e89410c969e)
 
 - 首先，進入中央氣象局的[氣象資料開放平台](https://opendata.cwa.gov.tw/devManual/insrtuction)，註冊帳號。
@@ -105,12 +107,10 @@
     - ```shell= 
       text='南投縣'
       ```
-::: 
+</details>
 
 
 
-
-<!-- How do the user install with your project? -->
 
 ## Usage
 
@@ -129,7 +129,9 @@
 
 - 在電腦的瀏覽器打入 `<RaspBerry Pi 4 的 ip>:5000`
     - 如果鏡頭無法開啟請參考以下方法
-:::spoiler 如何讓 Chrome 瀏覽器允許 http 打開鏡頭及麥克風
+
+<details>
+<summary>如何讓 Chrome 瀏覽器允許 http 打開鏡頭及麥克風</summary>
 
 [參考資料](https://blog.csdn.net/qq_43530326/article/details/130974058)
 
@@ -140,11 +142,14 @@
 - 把「已停用」改成「已啟用」，如下圖所示
     - ![螢幕擷取畫面 2025-01-07 223630](https://hackmd.io/_uploads/H1Exa25Ike.png)
 
-:::
+</details>
 
 - 再來就是用手機鬧鐘發送 http 請求給樹莓派啦
 
-:::spoiler 透過 iPhone 的快捷指令發送 http 請求至樹莓派
+<details>
+<summary>透過 iPhone 的快捷指令發送 http 請求至樹莓派</summary>
+
+
 步驟 1：準備樹莓派的 Flask Server
 1. 在 Flask server 中設定好 /alarm 的路由並確保能接收 HTTP POST 請求。
 2. 確保樹莓派和手機在同一 Wi-Fi 網路中，並知道其 IP 地址。如果樹莓派的 IP 地址是 192.168.100.79，那麼完整的 URL 是： `http://192.168.100.79:5000/alarm`
@@ -159,13 +164,17 @@
 步驟 3：整合快捷指令與鬧鐘
 1. 打開快捷指令 App，進入「自動化」功能。點擊 +，建立「個人自動化」。
 2. 設定鬧鐘觸發事件，添加剛剛建立的快捷指令，保存並啟用自動化。
-:::
+</details>
 
-:::spoiler 安卓要透過專案中的 alarm.html 發送 http 請求
-- 請用手機開啟`http://<RaspBerry Pi 4 的 ip>:5000/alarm` 
-:::
+<details>
+<summary>安卓要透過專案中的 alarm.html 發送 http 請求</summary>
 
-<!-- How to use your project -->
+- 請用手機開啟`http://<RaspBerry Pi 4 的 ip>:5000/alarm`
+- 設定你想要的時間、星期，並按下 Add Alarm
+
+</details>
+
+
 
 ## Job Assignment
 
