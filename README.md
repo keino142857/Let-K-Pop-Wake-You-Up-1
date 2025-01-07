@@ -1,104 +1,74 @@
-# 讓 K-Pop 叫你起床 
+# 讓 K-Pop 叫你起床
 
+## Concept Development
 
+由於平時鬧鐘響了只會伸手關掉，繼續賴床，根本無法有效起床。
+為了改善賴床問題，我們設計了一個鬧鐘系統，讓使用者必須做出指定動作才能關掉鬧鐘，最後會播報今日新聞。
 
+## Implementation Resources
 
-## 環境架設
+- 手機：價格不等（ios 系統跟 Android 系統方法不一樣）。
+- 電腦：價格不等，看你要用哪種，但一定要有鏡頭。
+- RaspBerry Pi 4：拿 MOLi 現成的。
+- 喇叭：連接到樹莓派用。
 
-以下參考了 [Cockroach_play_tetris](https://github.com/NCNU-OpenSource/Cockroach_play_tetris.git) 中的 openCV 安裝方式，感謝 [@UncleHanWei](https://github.com/UncleHanWei) 學長提供連結及技術上的支援
+## Existing Library/Software
 
-***
+### 使用 Python Libraries
+- `requests`：進行 HTTP 請求。
+- `os`：處理檔案路徑與環境變數。
+- `re`：處理正則表達式，解析或匹配特定格式的資料。
+- `datetime`：處理日期與時間資訊。
+- `dotenv`：載入 .env 檔案中的環境變數，用於設定 API 金鑰或其他敏感資訊。
+- `BeautifulSoup （bs4）`：解析 HTML 文件並提取所需的資料。
+- `pyttsx3`：文字轉語音，用於將天氣、書籍或新聞資訊轉換為語音播報。
+- `Flask`：用於建立 Web 伺服器，支援前端與後端互動。
+- `threading`：實現多線程處理，用於同時運行語音播報和其他後端任務。
+- `time`：延遲操作或測量執行時間。
+- `vlc`：控制 VLC 媒體播放器。
+<!-- Which libraries do you use while you implement the project -->
 
-### apt install 與 pip install
+## Implementation Process
 
-- sudo apt install：在哪裡都可以執行
-- pip install：只能在虛擬環境執行
-    - 原因：error: externally-managed-environment
+原本打算使用 Python 架後端，所以用 RaspBerry Pi 3 下載 MediaPipe、OpenCV、TensorFlow，但因為 Pi 3 的記憶體不夠，所以改成 RaspBerry Pi 4，但因為 RaspBerry Pi 4 的版本不相容，最後只好用 JavaScript 寫後端。
 
-***
+<!-- What kind of problems you encounter, and how did you resolve the issue? -->
 
-### 下載時遇到的困難
+## Knowledge from Lecture
 
+- RaspBerry Pi 4 環境架設
+- MediaPipe 動作辨識：參考了 [Playing Classic Game with Body Gestures using Pose Detection](https://github.com/NCNU-OpenSource/BobyGamer)，感謝第八組組員提供協助
+- Flask
+- JavaScript
+- Python
 
-#### 在 Raspberry Pi 3 上安裝 Mediapipe、TensorFlow、OpenCV
-- 第一次下載 Mediapipe 失敗，因為版本不相容（Raspberry Pi 3 的 Python 版本是 3.11.2）
-- Mediapipe 支援最高的 Python 版本是 3.9，所以降了版本再下載一次，終於成功了
-- 開始下載 TensorFlow 失敗，因為版本不相容
-- 下載並重新編譯了 Python3.7 ，然後再重裝了 Mediapipe（超級久）跟 TensorFlow
-- 開始下載 OpenCV，五六個小時後因為相依套件版本不相容安裝失敗
-:::info
-- 更新版本後再重新安裝，結果卡在 Building 100% 快兩個小時所以取消
-- 上網找了相關資料以後，有人叫我 Be Patient 所以重新安裝
-- 因為中間跳了一串資訊，有點好奇是什麼原因想複製起來所以按了 Ctrl + C 結果五個小時就這樣再見
-- 崩潰完後再安裝一次，安心的去睡覺，結果一早起來還在 Building
-- 發現可能是記憶體不夠，為了確認猜想再裝一次，還真的卡在 99%
-:::
-- 換成 Raspberry Pi 4，感謝柏瑋學長幫忙我們在 MOLi 挖出 Raspberry Pi 4
+<!-- What kind of knowledge did you use on this project? -->
 
-#### 在 Raspberry Pi 4 上安裝 Mediapipe、TensorFlow、OpenCV
-- 找不到安裝包
-- 官方不提供 ARM 架構的安裝包，所以 pip install 無法成功安裝
+## Installation
 
-[]
-<!-- ### 下載前可以先看這裡
+- 請先安裝需要的模組
+    - `pip install requests`
+    - `pip install python-dotenv`
+    - `pip install beautifulsoup4`
+    - `pip install pyttsx3`
+    - `pip install flask`
+    - `pip install python-vlc`
 
-- 有些下載的時間會很久，可以下這個指令看詳細的下載，可以增加信心並在出錯的時候可以即時知道XD
-    - `--verbose`
+- 在樹梅派輸入指令，下載專案
+    - 如果之前都沒有用過 git 指令的話，可以先下載
+        - `sudo apt install git`
+    - `git cline https://github.com/NCNU-OpenSource/Let-K-Pop-Wake-You-Up.git`
 
-### 下載並重新編譯 python3.7
-
-- 因為 Raspberry Pi 3 是基於 ARM 架構，
-- `wget https://www.python.org/ftp/python/3.7.9/Python-3.7.9.tgz`
-- `tar -xvf Python-3.7.9.tgz`
-
-
-### 建置虛擬環境（python 3.7）
-
-- `python3.7 -m venv lsa_p3.7`
-    - lsa_p3.7 可以根據自己的需求更換
-
-### 進入虛擬環境（python 3.7）
-
--  `source lsa_p3.7/bin/activate`
-
-### 下載 mediapipe
-
-- `pip install mediapipe-rpi3`
-
-### 下載 TensorFlow
-
-- `pip install tensorflow`
-
-### 下載 opencv
-
-- `sudo apt-get install libjpeg-dev libtiff5-dev libjasper-dev libpng-dev`
-- `sudo apt-get install build-essential cmake git pkg-config libgtk-3-dev libavcodec-dev libavformat-dev libswscale-dev libv4l-dev libxvidcore-dev libx264-dev libjpeg-dev libpng-dev libtiff-dev gfortran openexr libatlas-base-dev python3-dev python3-numpy libtbb2 libtbb-dev` 
-
-- 接下來下載時如果出現這個錯誤：<font color = #ff00>ERROR: Failed building wheel for opencv-contrib-python</font>，可以用這個指令升級，或是你可以一剛開始就先升級，避免睡一覺起來發現沒有裝成功（就是我）
-    - `pip install --upgrade pip setuptools wheel`
-- 可以順便檢查 pip 的版本
-    -  `pip --version`
-    - 如果版本低於 24.0 記得升級，不升級好像也可以，但它出錯的時候我就一起升級了，下面兩個可以二選一
-    - `pip install upgrade pip`
-    -  `python3.7 -m pip install --upgrade pip`
-- 接下來會下載很久，可以邊下載邊做別的事情，或是去睡覺XD
-    - `pip install opencv-contrib-python`
- -->
- 
- 
- 
-## 爬蟲
-
-### 爬天氣
-
+- 因為天氣爬蟲需要會員的私人金鑰才能使用，請先參考以下步驟設定
+:::spoiler 天氣爬蟲的金鑰設定
 天氣的爬蟲參考了[中央氣象局 Open API 取得當地的天氣狀況](https://gist.github.com/louis70109/d165be10be06d71708804e89410c969e)
 
 - 首先，進入中央氣象局的[氣象資料開放平台](https://opendata.cwa.gov.tw/devManual/insrtuction)，註冊帳號。
-![螢幕擷取畫面 2025-01-01 211052](https://hackmd.io/_uploads/rkYXl6M8yl.png)
+![螢幕擷取畫面 2025-01-01 211052](https://hackmd.io/_uploads/HJUd7bFLJx.png)
 
 - 登入按下去就對了。
 ![螢幕擷取畫面 2025-01-01 211733](https://hackmd.io/_uploads/B1bEWaf81l.png)
-   
+
 - 按加入會員。
 ![螢幕擷取畫面 2025-01-01 211820](https://hackmd.io/_uploads/B1aS-pfLJl.png)
 
@@ -135,3 +105,90 @@
     - ```shell= 
       text='南投縣'
       ```
+::: 
+
+
+
+
+<!-- How do the user install with your project? -->
+
+## Usage
+
+- 手機、筆電、RaspBerry Pi 4 都要連到同一個 Wi-Fi
+
+- 把 RaspBerry Pi 4 開機並接上音響
+
+- 先找 RaspBerry Pi 4 的 ip 位址
+    - `hostname -I`
+    - 或是 `ifconfig` 也可以
+
+- 進入檔案
+    - `cd Let-K-Pop-Wake-You-Up.git`
+- 執行
+    - `python app.py`
+
+- 在電腦的瀏覽器打入 `<RaspBerry Pi 4 的 ip>:5000`
+    - 如果鏡頭無法開啟請參考以下方法
+:::spoiler 如何讓 Chrome 瀏覽器允許 http 打開鏡頭及麥克風
+
+[參考資料](https://blog.csdn.net/qq_43530326/article/details/130974058)
+
+- 進入 Google 瀏覽器的實驗性功能（直接複製網址貼上就好）
+    - `chrome://flags/#unsafely-treat-insecure-origin-as-secure`
+- 在  Insecure origins treated as secure（黃色底的那邊）填入
+    - `http://<你的 RaspBerry Pi 4 ip>:5000`
+- 把「已停用」改成「已啟用」，如下圖所示
+    - ![螢幕擷取畫面 2025-01-07 223630](https://hackmd.io/_uploads/H1Exa25Ike.png)
+
+:::
+
+- 再來就是用手機鬧鐘發送 http 請求給樹莓派啦
+
+:::spoiler 透過 iPhone 的快捷指令發送 http 請求至樹莓派
+步驟 1：準備樹莓派的 Flask Server
+1. 在 Flask server 中設定好 /alarm 的路由並確保能接收 HTTP POST 請求。
+2. 確保樹莓派和手機在同一 Wi-Fi 網路中，並知道其 IP 地址。如果樹莓派的 IP 地址是 192.168.100.79，那麼完整的 URL 是： `http://192.168.100.79:5000/alarm`
+
+步驟 2：在 iPhone 上設定快捷指令
+1. 打開「快捷指令 (Shortcuts)」App。
+2. 點擊右上角的 +，創建一個新快捷指令。
+3. 添加「取得 URL 的內容 (Get Contents of URL)」操作，並設置：
+- URL：輸入: `http://<RaspBerry Pi 4 的 ip>:5000/alarm`
+- 方法 (Method)：選擇 POST。
+
+步驟 3：整合快捷指令與鬧鐘
+1. 打開快捷指令 App，進入「自動化」功能。點擊 +，建立「個人自動化」。
+2. 設定鬧鐘觸發事件，添加剛剛建立的快捷指令，保存並啟用自動化。
+:::
+
+:::spoiler 安卓要透過專案中的 alarm.html 發送 http 請求
+- 請用手機開啟`http://<RaspBerry Pi 4 的 ip>:5000/alarm` 
+:::
+
+<!-- How to use your project -->
+
+## Job Assignment
+
+| 學號 | 姓名 | 分工 |
+| -------- | -------- | -------- |
+|111213008| 楊璇蓁|圖片音樂剪輯、程式整合、MediaPipe 動作辨識、README 撰寫|
+|111213009|黃昕|ppt 製作、找音效、程式整合、README 撰寫|
+|111213034|孫睿君|UI、最後影片 Demo、程式整合、MediaPipe 動作辨識、README 撰寫、樹莓派環境架設|
+|111213086|陳莉榛|UI、爬蟲、資料庫(最後未實現)、做ppt|
+|111213089|徐碧君|UI、爬蟲、資料庫(最後未實現)、做ppt|
+
+## 特別感謝
+
+- 柏瑋學長
+- 漢偉學長
+- 第八組的組員
+- ChatGpt
+
+## References
+
+- https://blog.csdn.net/qq_43530326/article/details/130974058
+- https://github.com/NCNU-OpenSource/BobyGamer
+- https://gist.github.com/louis70109/d165be10be06d71708804e89410c969e
+
+
+
