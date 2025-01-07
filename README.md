@@ -192,6 +192,7 @@
 - 漢偉學長
 - 第八組的組員
 - ChatGpt
+- 感謝 MOLi 提供 RaspBerry Pi 4 讓我們不用花錢花時間
 
 ## References
 
