@@ -161,7 +161,7 @@
 
                 setTimeout(() => {  // 延遲以確保音訊資源釋放
                     fetch("/start_broadcast", {
-                        method: "POST",
+                        method: "GET",
                         headers: {
                             "Content-Type": "application/json"
                         },

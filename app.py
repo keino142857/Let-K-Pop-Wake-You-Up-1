@@ -209,7 +209,7 @@ def speak_text(text):
     engine.say(text)
     engine.runAndWait()
 
-@app.route('/start_broadcast', methods=['POST'])
+@app.route('/start_broadcast', methods=['GET'])
 def start_broadcast():
     try:
         # 播報天氣資訊
