@@ -54,7 +54,7 @@ def play_with_vlc():
     media_player = player.media_player_new()
 
     media_player.set_media(media)
-
+    print("gooooooooooooooooooooooooooo")
     # start playing video
     media_player.play()
     while alarm_playing:
@@ -139,6 +139,7 @@ def handle_motion_detected():
 def alarmStart():
     global alarm_playing, motion_detected_flag,alarm_thread
     print("收到鬧鐘通知！")
+    print(alarm_thread)
     if not alarm_thread:
         alarm_playing = threading.Thread(target = play_with_vlc)
         alarm_playing.start()
