@@ -58,7 +58,7 @@
         const actionImage = document.getElementById("actionImage");
         const backgroundMusic = document.getElementById("backgroundMusic");
 
-        const pauseTimes = [4, 7, 20, 20.2]; // 音樂暫停點
+        const pauseTimes = [4, 7, 20, 20.1]; // 音樂暫停點
         const imagePaths = [
             "static/photo/supernova1.png",
             "static/photo/supernova2.png",
@@ -156,7 +156,7 @@
             if (currentPauseIndex === requiredActions.length) {
                 console.log("所有動作已完成，開始請求播報資訊");
 
-                backgroundMusic.pause();
+                // backgroundMusic.pause();
                 backgroundMusic.currentTime = 0;
 
                 setTimeout(() => {  // 延遲以確保音訊資源釋放
