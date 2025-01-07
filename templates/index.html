@@ -145,24 +145,42 @@
 
         // 偵測到人時停止鬧鐘音效
         function handleAlarmResponse(data) {
-            if (data.show_button) {
-                document.getElementById('redirectButton').style.display = 'block'; // 顯示按鈕
-                document.getElementById('redirectButton').click();
-                
-                fetch('/stop', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                })
-                .then(response => response.json());
-                alarmAudio.pause(); // 停止鬧鐘音效
-                alarmAudio.currentTime = 0; // 重置音效播放進度
-                
-            } else {
-                document.getElementById('redirectButton').style.display = 'none'; // 隱藏按鈕
+    const redirectButton = document.getElementById('redirectButton');
+
+    if (data.show_button) {
+        // 顯示按鈕
+        redirectButton.style.display = 'block';
+
+        // 添加點擊事件處理器
+        redirectButton.onclick = () => {
+            // 停止鬧鐘音效
+            if (alarmAudio) {
+                alarmAudio.pause();
+                alarmAudio.currentTime = 0;
             }
-        }
+
+            // 發送停止請求
+            fetch('/stop', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .catch(error => console.error('Fetch error:', error));
+
+            // 隱藏按鈕
+            redirectButton.style.display = 'none';
+        };
+    } else {
+        // 隱藏按鈕
+        redirectButton.style.display = 'none';
+    }
+}
+
 
         // 頁面載入時初始化
         window.onload = initPoseDetection;
