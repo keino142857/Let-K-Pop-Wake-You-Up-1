@@ -147,7 +147,7 @@
         function handleAlarmResponse(data) {
             if (data.show_button) {
                 document.getElementById('redirectButton').style.display = 'block'; // 顯示按鈕
-                document.getElementById('redirectButton').click();
+                // document.getElementById('redirectButton').click();
                 
                 fetch('/stop', {
                     method: 'GET',
