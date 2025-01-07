@@ -169,12 +169,13 @@
 
 ## Job Assignment
 
-111213008 楊璇蓁： 圖片音樂剪輯、程式整合、MediaPipe 動作辨識、README 撰寫
-111213009 黃昕： ppt 製作、找音效、程式整合、README 撰寫
-111213034 孫睿君： UI、影片補 Demo、程式整合、MediaPipe 動作辨識、README 撰寫、樹莓派環境架設
-111213086 陳莉榛： UI、爬蟲、資料庫(最後未實現)、ppt 製作
-111213089 徐碧君： UI、爬蟲、資料庫(最後未實現)、ppt 製作
-
+| 學號 | 姓名 | 分工 |
+| -------- | -------- | -------- |
+|111213008| 楊璇蓁|圖片音樂剪輯、程式整合、MediaPipe 動作辨識、README 撰寫|
+|111213009|黃昕|ppt 製作、找音效、程式整合、README 撰寫|
+|111213034|孫睿君|UI、最後影片 Demo、程式整合、MediaPipe 動作辨識、README 撰寫、樹莓派環境架設|
+|111213086|陳莉榛|UI、爬蟲、資料庫(最後未實現)、做ppt|
+|111213089|徐碧君|UI、爬蟲、資料庫(最後未實現)、做ppt|
 
 ## 特別感謝
 
@@ -188,3 +189,6 @@
 - https://blog.csdn.net/qq_43530326/article/details/130974058
 - https://github.com/NCNU-OpenSource/BobyGamer
 - https://gist.github.com/louis70109/d165be10be06d71708804e89410c969e
+
+
+
