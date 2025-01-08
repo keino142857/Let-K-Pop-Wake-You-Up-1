@@ -7,36 +7,40 @@
 
 ## Implementation Resources
 
-- 手機：價格不等（ios 系統跟 Android 系統方法不一樣）。
+- 手機：價格不等（iOS 系統跟 Android 系統方法不一樣）。
 - 電腦：價格不等，看你要用哪種，但一定要有鏡頭。
-- RaspBerry Pi 4：拿 MOLi 現成的。
+- Raspberry Pi 4：拿 MOLi 現成的。
 - 喇叭：連接到樹莓派用。
 
 ## Existing Library/Software
 
 ### 使用 Python Libraries
-- `requests`：進行 HTTP 請求。
-- `os`：處理檔案路徑與環境變數。
-- `re`：處理正則表達式，解析或匹配特定格式的資料。
-- `datetime`：處理日期與時間資訊。
-- `dotenv`：載入 .env 檔案中的環境變數，用於設定 API 金鑰或其他敏感資訊。
-- `BeautifulSoup （bs4）`：解析 HTML 文件並提取所需的資料。
-- `pyttsx3`：文字轉語音，用於將天氣、書籍或新聞資訊轉換為語音播報。
-- `Flask`：用於建立 Web 伺服器，支援前端與後端互動。
-- `threading`：實現多線程處理，用於同時運行語音播報和其他後端任務。
-- `time`：延遲操作或測量執行時間。
-- `vlc`：控制 VLC 媒體播放器。
+
+- 內建的模組
+    - `os`：處理檔案路徑與環境變數。
+    - `re`：處理正則表達式，解析或匹配特定格式的資料。
+    - `datetime`：處理日期與時間資訊。
+    - `threading`：實現多線程處理，用於同時運行語音播報和其他後端任務。
+    - `time`：延遲操作或測量執行時間。
+
+- 需要另外下載的模組
+    - `Flask`：用於建立 Web 伺服器，支援前端與後端互動。
+    - `pyttsx3`：文字轉語音，用於將天氣、書籍或新聞資訊轉換為語音播報。
+    - `BeautifulSoup （bs4）`：解析 HTML 文件並提取所需的資料。
+    - `dotenv`：載入 .env 檔案中的環境變數，用於設定 API 金鑰或其他敏感資訊。
+    - `requests`：進行 HTTP 請求。
+    - `vlc`：控制 VLC 媒體播放器。
 
 
 ## Implementation Process
 
-原本打算使用 Python 架後端，所以用 RaspBerry Pi 3 下載 MediaPipe、OpenCV、TensorFlow，但因為 Pi 3 的記憶體不夠，所以改成 RaspBerry Pi 4，但因為 RaspBerry Pi 4 的版本不相容，最後只好用 JavaScript 寫後端。
+原本打算使用 Python 架後端，所以用 Raspberry Pi 3 下載 MediaPipe、OpenCV、TensorFlow，但因為 Pi 3 的記憶體不夠，所以改成 Raspberry Pi 4，但因為 Raspberry Pi 4 的版本不相容，最後只好用 JavaScript 在前端做動作辨識。
 
 
 
 ## Knowledge from Lecture
 
-- RaspBerry Pi 4 環境架設
+- Raspberry Pi 4 環境架設
 - MediaPipe 動作辨識：參考了 [Playing Classic Game with Body Gestures using Pose Detection](https://github.com/NCNU-OpenSource/BobyGamer)，感謝第八組組員提供協助
 - Flask
 - JavaScript
@@ -56,7 +60,7 @@
 - 在樹梅派輸入指令，下載專案
     - 如果之前都沒有用過 git 指令的話，可以先下載
         - `sudo apt install git`
-    - `git cline https://github.com/NCNU-OpenSource/Let-K-Pop-Wake-You-Up.git`
+    - `git clone https://github.com/NCNU-OpenSource/Let-K-Pop-Wake-You-Up.git`
 
 - 因為天氣爬蟲需要會員的私人金鑰才能使用，請先參考以下步驟設定
 
@@ -114,20 +118,20 @@
 
 ## Usage
 
-- 手機、筆電、RaspBerry Pi 4 都要連到同一個 Wi-Fi
+- 手機、筆電、Raspberry Pi 4 都要連到同一個 Wi-Fi
 
-- 把 RaspBerry Pi 4 開機並接上音響
+- 把 Raspberry Pi 4 開機並接上音響
 
-- 先找 RaspBerry Pi 4 的 ip 位址
+- 先找 Raspberry Pi 4 的 ip 位址
     - `hostname -I`
     - 或是 `ifconfig` 也可以
 
 - 進入檔案
-    - `cd Let-K-Pop-Wake-You-Up.git`
+    - `cd Let-K-Pop-Wake-You-Up`
 - 執行
     - `python app.py`
 
-- 在電腦的瀏覽器打入 `<RaspBerry Pi 4 的 ip>:5000`
+- 在電腦的瀏覽器打入 `<Raspberry Pi 4 的 ip>:5000`
     - 如果鏡頭無法開啟請參考以下方法
 
 <details>
@@ -138,7 +142,7 @@
 - 進入 Google 瀏覽器的實驗性功能（直接複製網址貼上就好）
     - `chrome://flags/#unsafely-treat-insecure-origin-as-secure`
 - 在  Insecure origins treated as secure（黃色底的那邊）填入
-    - `http://<你的 RaspBerry Pi 4 ip>:5000`
+    - `http://<你的 Raspberry Pi 4 ip>:5000`
 - 把「已停用」改成「已啟用」，如下圖所示
     - ![螢幕擷取畫面 2025-01-07 223630](https://hackmd.io/_uploads/H1Exa25Ike.png)
 
@@ -158,7 +162,7 @@
 1. 打開「快捷指令 (Shortcuts)」App。
 2. 點擊右上角的 +，創建一個新快捷指令。
 3. 添加「取得 URL 的內容 (Get Contents of URL)」操作，並設置：
-- URL：輸入: `http://<RaspBerry Pi 4 的 ip>:5000/alarm`
+- URL：輸入: `http://<Raspberry Pi 4 的 ip>:5000/alarm`
 - 方法 (Method)：選擇 POST。
 
 步驟 3：整合快捷指令與鬧鐘
@@ -169,7 +173,7 @@
 <details>
 <summary>安卓要透過專案中的 alarm.html 發送 http 請求</summary>
 
-- 請用手機開啟`http://<RaspBerry Pi 4 的 ip>:5000/alarm`
+- 請用手機開啟`http://<Raspberry Pi 4 的 ip>:5000/alarm`
 - 設定你想要的時間、星期，並按下 Add Alarm
 
 </details>
@@ -183,16 +187,16 @@
 |111213008| 楊璇蓁|圖片音樂剪輯、程式整合、MediaPipe 動作辨識、README 撰寫|
 |111213009|黃昕|ppt 製作、找音效、程式整合、README 撰寫|
 |111213034|孫睿君|UI、最後影片 Demo、程式整合、MediaPipe 動作辨識、README 撰寫、樹莓派環境架設|
-|111213086|陳莉榛|UI、爬蟲、資料庫(最後未實現)、做ppt|
-|111213089|徐碧君|UI、爬蟲、資料庫(最後未實現)、做ppt|
+|111213086|陳莉榛|UI、爬蟲、資料庫(最後未實現)、簡報製作|
+|111213089|徐碧君|UI、爬蟲、資料庫(最後未實現)、簡報製作|
 
 ## 特別感謝
 
-- 柏瑋學長
 - 漢偉學長
+- 柏瑋學長
 - 第八組的組員
-- ChatGpt
-- 感謝 MOLi 提供 RaspBerry Pi 4 讓我們不用花錢花時間
+- ChatGPT
+- 感謝 MOLi 提供 Raspberry Pi 4 讓我們不用花錢花時間
 
 ## References
 
